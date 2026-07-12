@@ -27,7 +27,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 const SUPABASE_URL  = 'https://zxserlkhwkfoqiepurdr.supabase.co'; // selko-prod, shared with Cred/Comply/Billing
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4c2VybGtod2tmb3FpZXB1cmRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NDM1NDIsImV4cCI6MjA5NjAxOTU0Mn0.cA9LJSn5t4sIbIemdQGQsdwtQFwb-6Q9xIZi48UYq34'; // grab from Project Settings → API (same anon key Cred/Comply use)
+const SUPABASE_ANON = 'REPLACE_WITH_SUPABASE_ANON_KEY'; // grab from Project Settings → API (same anon key Cred/Comply use)
 
 /* ── Supabase client ──────────────────────────────────────────── */
 const { createClient } = supabase;
@@ -432,6 +432,7 @@ function renderCurrentProgram() {
           </div>
           <button class="ex-list-remove" data-id="${s.exerciseId}" aria-label="Remove ${ex.name}">✕</button>
         </div>
+        ${ex.instructions ? `<div class="ex-list-stock-instructions">${ex.instructions}</div>` : ''}
         <div class="ex-list-params-row">
           <select class="param-select" data-id="${s.exerciseId}" data-field="sets" aria-label="Sets">
             <option value="">— Sets —</option>
@@ -938,6 +939,9 @@ function openPatientExercise(exId) {
   const params = [sessionItem.sets, sessionItem.reps, sessionItem.freq].filter(Boolean).join(' · ');
   document.getElementById('pt-params').textContent = params || '';
   document.getElementById('pt-params').style.display = params ? 'block' : 'none';
+
+  // stock instructions (from the exercise library, how to actually perform it)
+  document.getElementById('pt-instructions').textContent = ex.instructions || '';
 
   // comment
   document.getElementById('pt-comments').textContent = sessionItem.comment || '';
