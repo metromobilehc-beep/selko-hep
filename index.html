@@ -61,6 +61,36 @@
 </div>
 
 <!-- ════════════════════════════════════════════════════
+     SCREEN: SET NEW PASSWORD
+     Shown when a password-recovery link is clicked — the
+     link logs the user in via a temporary Supabase session,
+     and this screen is what actually makes them set a new
+     password before they can reach the app.
+     ════════════════════════════════════════════════════ -->
+<div id="screen-new-password" class="screen">
+  <div class="login-wrap">
+    <div class="login-logo">
+      <span class="login-wordmark">selko</span>
+    </div>
+    <h1 class="login-title">Set a new password</h1>
+    <p class="login-sub">Choose a new password for your account</p>
+
+    <div id="new-password-msg" class="alert hidden"></div>
+
+    <div class="form-group">
+      <label class="form-label" for="new-password">New password</label>
+      <input class="form-input" type="password" id="new-password" placeholder="At least 8 characters" autocomplete="new-password">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="new-password-confirm">Confirm password</label>
+      <input class="form-input" type="password" id="new-password-confirm" placeholder="Re-enter password" autocomplete="new-password">
+    </div>
+
+    <button class="btn btn-primary btn-full" id="btn-set-new-password">Set password</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
      SHARED HEADER (used on all authenticated screens)
      ════════════════════════════════════════════════════ -->
 <header id="app-header" class="app-header hidden">

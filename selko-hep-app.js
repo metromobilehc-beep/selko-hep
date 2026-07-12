@@ -27,7 +27,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 const SUPABASE_URL  = 'https://zxserlkhwkfoqiepurdr.supabase.co'; // selko-prod, shared with Cred/Comply/Billing
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4c2VybGtod2tmb3FpZXB1cmRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NDM1NDIsImV4cCI6MjA5NjAxOTU0Mn0.cA9LJSn5t4sIbIemdQGQsdwtQFwb-6Q9xIZi48UYq34'; // grab from Project Settings → API (same anon key Cred/Comply use)
+const SUPABASE_ANON = 'REPLACE_WITH_SUPABASE_ANON_KEY'; // grab from Project Settings → API (same anon key Cred/Comply use)
 
 /* ── Supabase client ──────────────────────────────────────────── */
 const { createClient } = supabase;
@@ -250,6 +250,40 @@ async function handleForgotPassword() {
     msgEl.className = 'alert alert-success';
   }
   msgEl.classList.remove('hidden');
+}
+
+async function handleSetNewPassword() {
+  const pw      = document.getElementById('new-password').value;
+  const pwConf  = document.getElementById('new-password-confirm').value;
+  const msgEl   = document.getElementById('new-password-msg');
+  msgEl.classList.add('hidden');
+
+  if (pw.length < 8) {
+    msgEl.textContent = 'Password must be at least 8 characters.';
+    msgEl.className = 'alert alert-error';
+    msgEl.classList.remove('hidden');
+    return;
+  }
+  if (pw !== pwConf) {
+    msgEl.textContent = 'Passwords do not match.';
+    msgEl.className = 'alert alert-error';
+    msgEl.classList.remove('hidden');
+    return;
+  }
+
+  const { error } = await db.auth.updateUser({ password: pw });
+
+  if (error) {
+    msgEl.textContent = error.message;
+    msgEl.className = 'alert alert-error';
+    msgEl.classList.remove('hidden');
+    return;
+  }
+
+  // Password is set — now log them into the app properly.
+  const { data: { session } } = await db.auth.getSession();
+  state.user = session.user;
+  await onLoginSuccess();
 }
 
 async function handleLogout() {
@@ -976,6 +1010,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ── Check if this is a patient link first ─────────────────── */
   const params = new URLSearchParams(window.location.search);
+  const isRecovery = params.get('reset') === 'true' || window.location.hash.includes('type=recovery');
+
   if (params.get('code')) {
     showScreen('screen-patient-entry');
     const code = params.get('code');
@@ -983,6 +1019,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       const inputs = document.querySelectorAll('.code-digit');
       code.split('').forEach((d, i) => { if (inputs[i]) inputs[i].value = d; });
     }
+  } else if (isRecovery) {
+    /* Recovery link clicked — Supabase already created a temporary
+       session, but the user must set a real password before reaching
+       the app. onAuthStateChange's PASSWORD_RECOVERY handler also
+       covers this, but we check here too in case that event already
+       fired before this listener was attached. */
+    showScreen('screen-new-password');
   } else {
     /* ── Check existing Supabase session ───────────────────────── */
     const { data: { session } } = await db.auth.getSession();
@@ -1002,6 +1045,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-forgot').addEventListener('click', () => showScreen('screen-forgot'));
   document.getElementById('btn-back-login').addEventListener('click', () => showScreen('screen-login'));
   document.getElementById('btn-send-reset').addEventListener('click', handleForgotPassword);
+  document.getElementById('btn-set-new-password').addEventListener('click', handleSetNewPassword);
   document.getElementById('btn-logout').addEventListener('click', handleLogout);
 
   /* ─── NAV ─────────────────────────────────────────────────── */
@@ -1173,7 +1217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       showScreen('screen-login');
     }
     if (event === 'PASSWORD_RECOVERY') {
-      // Handled by redirectTo in handleForgotPassword
+      showScreen('screen-new-password');
     }
   });
 
