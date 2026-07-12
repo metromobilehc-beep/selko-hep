@@ -27,7 +27,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 const SUPABASE_URL  = 'https://zxserlkhwkfoqiepurdr.supabase.co'; // selko-prod, shared with Cred/Comply/Billing
-const SUPABASE_ANON = 'REPLACE_WITH_SUPABASE_ANON_KEY'; // grab from Project Settings → API (same anon key Cred/Comply use)
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4c2VybGtod2tmb3FpZXB1cmRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NDM1NDIsImV4cCI6MjA5NjAxOTU0Mn0.cA9LJSn5t4sIbIemdQGQsdwtQFwb-6Q9xIZi48UYq34'; // grab from Project Settings → API (same anon key Cred/Comply use)
 
 /* ── Supabase client ──────────────────────────────────────────── */
 const { createClient } = supabase;
