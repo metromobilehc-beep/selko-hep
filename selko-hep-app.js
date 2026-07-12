@@ -7,20 +7,27 @@
      - Supabase JS v2 CDN  (loaded in index.html before this file)
      - SortableJS CDN      (loaded in index.html before this file)
 
-   Supabase tables expected:
-     hep_exercises   - master exercise library (mirrors EXERCISE_LIBRARY)
-     hep_programs    - clinician-built programs
-     hep_patients    - patient access records (code, expiry, compliance)
-     hep_shares      - maps 4-digit codes to programs
+   Supabase tables (selko-prod, shared multi-tenant project):
+     hep_programs    - clinician-built programs, company_id-scoped RLS
+                       (see 001_hep_programs_migration.sql)
+     profiles        - existing table, used to resolve company_id
+     companies       - existing table, has_hep feature flag gates access
+     storage: hep-media bucket - patient photo/video uploads
+                       (replaces the original base64-in-jsonb approach)
+
+   Exercise library (EXERCISE_LIBRARY in selko-hep-data.js) stays a
+   static JS array, not a DB table — matches Evan's original design
+   and is fine since it's shared across all companies with no
+   per-tenant data in it.
 
    ─── CONFIGURATION ────────────────────────────────────────────
-   Replace the two placeholders below with values from Stephen:
-     SUPABASE_URL  → Project Settings → API → Project URL
+   Just paste in the anon key below (URL is already filled in —
+   same selko-prod project as Cred/Comply/Billing):
      SUPABASE_ANON → Project Settings → API → anon / public key
    ═══════════════════════════════════════════════════════════════ */
 
-const SUPABASE_URL  = 'REPLACE_WITH_SUPABASE_URL';
-const SUPABASE_ANON = 'REPLACE_WITH_SUPABASE_ANON_KEY';
+const SUPABASE_URL  = 'https://zxserlkhwkfoqiepurdr.supabase.co'; // selko-prod, shared with Cred/Comply/Billing
+const SUPABASE_ANON = 'REPLACE_WITH_SUPABASE_ANON_KEY'; // grab from Project Settings → API (same anon key Cred/Comply use)
 
 /* ── Supabase client ──────────────────────────────────────────── */
 const { createClient } = supabase;
@@ -31,6 +38,7 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON);
    ═══════════════════════════════════════════════════════════════ */
 const state = {
   user:            null,        // Supabase auth user
+  companyId:       null,        // from profiles table — required for every insert
   currentSession:  [],          // [{exerciseId, sets, reps, freq, comment, patientPhoto, patientVideo}]
   programs:        [],          // clinician's saved programs from DB
   activeProgram:   null,        // program object currently open in detail view
@@ -39,6 +47,35 @@ const state = {
   patientProgram:  null,        // program loaded in patient view
   completedToday:  {},          // { exerciseId: true } for patient daily tracking
 };
+
+/** Load the logged-in clinician's company_id + has_hep flag from profiles/companies.
+ *  Every other Selko module (Cred, Comply) follows this same lookup. */
+async function loadCompanyContext() {
+  const { data: profile, error: profErr } = await db
+    .from('profiles')
+    .select('company_id')
+    .eq('id', state.user.id)
+    .single();
+
+  if (profErr || !profile) {
+    showToast('Could not load your profile — contact your admin');
+    console.error(profErr);
+    return false;
+  }
+  state.companyId = profile.company_id;
+
+  const { data: company, error: compErr } = await db
+    .from('companies')
+    .select('has_hep')
+    .eq('id', state.companyId)
+    .single();
+
+  if (compErr || !company?.has_hep) {
+    showToast('HEP is not enabled for your company yet — contact your admin');
+    return false;
+  }
+  return true;
+}
 
 /* ═══════════════════════════════════════════════════════════════
    TRANSLATIONS  (static UI strings only — exercise text uses
@@ -139,14 +176,26 @@ function getExercise(id) {
   return EXERCISE_LIBRARY.find(e => e.id === id) || null;
 }
 
-/** Read file as base64 data URL */
-function readFileAsDataURL(file) {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload  = () => resolve(r.result);
-    r.onerror = reject;
-    r.readAsDataURL(file);
+/** Upload a patient photo/video to the hep-media bucket and return its public URL.
+ *  Path: hep-media/{company_id}/{clinician_id}/{exerciseId}_{kind}_{timestamp}.{ext}
+ *  Replaces the old base64-in-jsonb approach, which would bloat rows and
+ *  hit payload-size limits fast once a few programs had photos/videos. */
+async function uploadPatientMedia(file, exerciseId, kind /* 'photo' | 'video' */) {
+  const ext  = (file.name.split('.').pop() || (kind === 'photo' ? 'jpg' : 'mp4')).toLowerCase();
+  const path = `${state.companyId}/${state.user.id}/${exerciseId}_${kind}_${Date.now()}.${ext}`;
+
+  const { error } = await db.storage.from('hep-media').upload(path, file, {
+    cacheControl: '3600',
+    upsert: false,
   });
+  if (error) {
+    console.error(error);
+    showToast(`Error uploading ${kind} — try again`);
+    return null;
+  }
+
+  const { data } = db.storage.from('hep-media').getPublicUrl(path);
+  return data.publicUrl;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -210,8 +259,13 @@ async function handleLogout() {
   showScreen('screen-login');
 }
 
-function onLoginSuccess() {
+async function onLoginSuccess() {
   document.getElementById('nav-user-email').textContent = state.user.email || '';
+  const ok = await loadCompanyContext();
+  if (!ok) {
+    await handleLogout();
+    return;
+  }
   loadPrograms();
   showScreen('screen-home');
 }
@@ -403,9 +457,11 @@ function renderCurrentProgram() {
   list.querySelectorAll('.pt-photo-input').forEach(inp => {
     inp.addEventListener('change', async () => {
       if (!inp.files[0]) return;
-      const dataURL = await readFileAsDataURL(inp.files[0]);
+      showToast('Uploading photo…');
+      const url = await uploadPatientMedia(inp.files[0], inp.dataset.id, 'photo');
+      if (!url) return;
       const item = state.currentSession.find(s => s.exerciseId === inp.dataset.id);
-      if (item) { item.patientPhoto = dataURL; renderCurrentProgram(); }
+      if (item) { item.patientPhoto = url; renderCurrentProgram(); }
     });
   });
 
@@ -413,9 +469,11 @@ function renderCurrentProgram() {
   list.querySelectorAll('.pt-video-input').forEach(inp => {
     inp.addEventListener('change', async () => {
       if (!inp.files[0]) return;
-      const dataURL = await readFileAsDataURL(inp.files[0]);
+      showToast('Uploading video…');
+      const url = await uploadPatientMedia(inp.files[0], inp.dataset.id, 'video');
+      if (!url) return;
       const item = state.currentSession.find(s => s.exerciseId === inp.dataset.id);
-      if (item) { item.patientVideo = dataURL; renderCurrentProgram(); }
+      if (item) { item.patientVideo = url; renderCurrentProgram(); }
     });
   });
 
@@ -467,6 +525,7 @@ async function sendCurrentProgram() {
 
   // Build program payload
   const payload = {
+    company_id:   state.companyId,
     clinician_id: state.user.id,
     name,
     exercises:    state.currentSession,
@@ -927,7 +986,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const { data: { session } } = await db.auth.getSession();
     if (session?.user) {
       state.user = session.user;
-      onLoginSuccess();
+      await onLoginSuccess();
     } else {
       showScreen('screen-login');
     }
