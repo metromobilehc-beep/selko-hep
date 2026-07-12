@@ -20,9 +20,7 @@
     </div>
     <h1 class="login-title">HEP Builder</h1>
     <p class="login-sub">Sign in to your clinician account</p>
-
     <div id="login-error" class="alert alert-error hidden"></div>
-
     <div class="form-group">
       <label class="form-label" for="login-email">Email</label>
       <input class="form-input" type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
@@ -31,7 +29,6 @@
       <label class="form-label" for="login-password">Password</label>
       <input class="form-input" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
     </div>
-
     <button class="btn btn-primary btn-full" id="btn-login">Sign in</button>
     <button class="btn-link" id="btn-forgot">Forgot password?</button>
   </div>
@@ -47,14 +44,11 @@
     </div>
     <h1 class="login-title">Reset password</h1>
     <p class="login-sub">Enter your email and we'll send you a reset link</p>
-
     <div id="forgot-msg" class="alert hidden"></div>
-
     <div class="form-group">
       <label class="form-label" for="forgot-email">Email</label>
       <input class="form-input" type="email" id="forgot-email" placeholder="you@example.com">
     </div>
-
     <button class="btn btn-primary btn-full" id="btn-send-reset">Send reset link</button>
     <button class="btn-link" id="btn-back-login">Back to sign in</button>
   </div>
@@ -70,9 +64,7 @@
     </div>
     <h1 class="login-title">Set a new password</h1>
     <p class="login-sub">Choose a new password for your account</p>
-
     <div id="new-password-msg" class="alert hidden"></div>
-
     <div class="form-group">
       <label class="form-label" for="new-password">New password</label>
       <input class="form-input" type="password" id="new-password" placeholder="At least 8 characters" autocomplete="new-password">
@@ -81,7 +73,6 @@
       <label class="form-label" for="new-password-confirm">Confirm password</label>
       <input class="form-input" type="password" id="new-password-confirm" placeholder="Re-enter password" autocomplete="new-password">
     </div>
-
     <button class="btn btn-primary btn-full" id="btn-set-new-password">Set password</button>
   </div>
 </div>
@@ -100,11 +91,8 @@
   </div>
 </header>
 
-<!-- Side-drawer nav
-     FIX: Added inert attribute so that when the nav is closed,
-     nothing inside it can receive focus or intercept clicks.
-     This resolves the aria-hidden/focus conflict that was
-     blocking the Add New Exercise button from being clickable. -->
+<!-- Side-drawer nav — inert when closed so nothing inside
+     can intercept clicks on elements behind it -->
 <nav id="side-nav" class="side-nav hidden" inert aria-hidden="true">
   <div class="nav-overlay" id="nav-overlay"></div>
   <div class="nav-panel">
@@ -130,7 +118,6 @@
     <h1 class="home-heading">Welcome to HEP Builder</h1>
     <p class="home-sub">by Selko</p>
     <p class="home-desc">Build your patient's personalized exercise program in minutes — right at the bedside.</p>
-
     <div class="quick-cards">
       <button class="quick-card" data-screen="screen-exercises">
         <div class="quick-card-icon">🔍</div>
@@ -141,7 +128,6 @@
         <div class="quick-card-label">My programs</div>
       </button>
     </div>
-
     <button class="btn btn-primary btn-full current-program-btn" id="btn-view-current-home">
       <span>📌 View current program</span>
       <span class="badge" id="badge-home">0</span>
@@ -150,7 +136,7 @@
 </div>
 
 <!-- ════════════════════════════════════════════════════
-     SCREEN: EXERCISES (library + search)
+     SCREEN: EXERCISES
      ════════════════════════════════════════════════════ -->
 <div id="screen-exercises" class="screen app-screen hidden">
   <div class="screen-body">
@@ -159,25 +145,18 @@
       <input class="search-input" type="text" id="exercise-search" placeholder="Search by exercise, body part, or movement…" autocomplete="off">
       <button class="search-clear hidden" id="btn-search-clear">✕</button>
     </div>
-
     <button class="btn btn-secondary btn-full admin-only hidden" id="btn-open-add-exercise" style="margin-bottom:14px;">
       ＋ Add new exercise
     </button>
-
-    <div class="exercise-grid" id="exercise-grid">
-      <!-- populated by JS -->
-    </div>
+    <div class="exercise-grid" id="exercise-grid"></div>
   </div>
-
-  <!-- floating current program button -->
   <div class="float-bar">
     <button class="btn btn-primary btn-full current-program-btn" id="btn-view-current-ex">
       <span>📌 View current program</span>
       <span class="badge" id="badge-ex">0</span>
     </button>
   </div>
-
-  <!-- exercise action popup -->
+  <!-- Exercise action popup -->
   <div id="exercise-popup" class="popup-overlay hidden" role="dialog" aria-modal="true" aria-label="Add exercise">
     <div class="popup-card" id="exercise-popup-card">
       <h3 class="popup-title" id="popup-ex-name"></h3>
@@ -186,36 +165,28 @@
       <p class="popup-hint">Tap anywhere outside to dismiss</p>
     </div>
   </div>
-
-  <!-- add to previous program — program picker -->
+  <!-- Add to previous — program picker -->
   <div id="prev-picker-overlay" class="popup-overlay hidden" role="dialog" aria-modal="true" aria-label="Select program">
     <div class="popup-card">
       <h3 class="popup-title">Select a program</h3>
-      <div id="prev-program-list" class="prev-list">
-        <!-- populated by JS -->
-      </div>
+      <div id="prev-program-list" class="prev-list"></div>
       <button class="btn-link" id="btn-prev-cancel">Cancel</button>
     </div>
   </div>
 </div>
 
 <!-- ════════════════════════════════════════════════════
-     SCREEN: CURRENT PROGRAM (in-session build)
+     SCREEN: CURRENT PROGRAM
      ════════════════════════════════════════════════════ -->
 <div id="screen-current" class="screen app-screen hidden">
   <div class="screen-body">
     <button class="back-btn" id="btn-back-from-current">← Back to exercises</button>
     <p class="screen-hint" id="current-hint">0 exercises selected this session. Adjust parameters below.</p>
-
-    <div id="current-list" class="exercise-list">
-      <!-- populated by JS -->
-    </div>
-
+    <div id="current-list" class="exercise-list"></div>
     <div id="current-empty" class="empty-state hidden">
       <div class="empty-icon">📋</div>
       <p>No exercises added yet.<br>Go back and tap an exercise to add it.</p>
     </div>
-
     <div id="current-send-area" class="hidden">
       <div class="form-group">
         <label class="form-label" for="current-program-name">Program name</label>
@@ -224,8 +195,7 @@
       <button class="btn btn-primary btn-full" id="btn-send-current">Send to patient</button>
     </div>
   </div>
-
-  <!-- less than 3 exercises warning -->
+  <!-- < 3 exercises warning -->
   <div id="few-ex-modal" class="modal-overlay hidden" role="dialog">
     <div class="modal-card">
       <p>This program has fewer than 3 exercises. Are you sure it's complete?</p>
@@ -235,7 +205,6 @@
       </div>
     </div>
   </div>
-
   <!-- Phone entry modal -->
   <div id="phone-modal" class="modal-overlay hidden" role="dialog">
     <div class="modal-card">
@@ -254,18 +223,12 @@
 </div>
 
 <!-- ════════════════════════════════════════════════════
-     SCREEN: MY PROGRAMS (list)
+     SCREEN: MY PROGRAMS
      ════════════════════════════════════════════════════ -->
 <div id="screen-programs" class="screen app-screen hidden">
   <div class="screen-body">
-    <div class="hipaa-notice">
-      ⚠️ Do not use any identifying information for your clients!
-    </div>
-
-    <div id="programs-list" class="programs-list">
-      <!-- populated by JS -->
-    </div>
-
+    <div class="hipaa-notice">⚠️ Do not use any identifying information for your clients!</div>
+    <div id="programs-list" class="programs-list"></div>
     <div id="programs-empty" class="empty-state hidden">
       <div class="empty-icon">📋</div>
       <p>No programs yet.<br>Go to Exercises to build your first program.</p>
@@ -275,24 +238,37 @@
 </div>
 
 <!-- ════════════════════════════════════════════════════
-     SCREEN: ADMIN (admin/super-admin only)
+     SCREEN: ADMIN
      ════════════════════════════════════════════════════ -->
 <div id="screen-admin" class="screen app-screen hidden">
-  <div class="screen-body">
-    <h2 class="detail-program-name">Manage exercise library</h2>
-    <p class="screen-hint">Exercises added here appear alongside the built-in library for everyone at your company.</p>
+  <div class="screen-body no-float">
+    <h2 class="detail-program-name">Admin</h2>
 
+    <!-- ── Add new exercise ── -->
+    <p class="screen-hint" style="margin-bottom:10px;">Exercise library</p>
     <button class="btn btn-primary btn-full" id="btn-open-add-exercise-admin" style="margin-bottom:18px;">
       ＋ Add new exercise
     </button>
-
-    <div id="admin-custom-ex-list" class="programs-list">
-      <!-- populated by JS -->
-    </div>
-
-    <div id="admin-custom-ex-empty" class="empty-state hidden">
+    <div id="admin-custom-ex-list" class="programs-list" style="margin-bottom:28px;"></div>
+    <div id="admin-custom-ex-empty" class="empty-state hidden" style="margin-bottom:28px;">
       <div class="empty-icon">🏋️</div>
       <p>No custom exercises added yet.</p>
+    </div>
+
+    <!-- ── Divider ── -->
+    <hr style="border:none;border-top:1px solid var(--border);margin-bottom:24px;">
+
+    <!-- ── Add new user ── -->
+    <p class="screen-hint" style="margin-bottom:10px;">Clinician accounts</p>
+    <button class="btn btn-primary btn-full" id="btn-open-invite-user" style="margin-bottom:18px;">
+      ＋ Add new user
+    </button>
+
+    <!-- Clinician list -->
+    <div id="admin-user-list" class="programs-list"></div>
+    <div id="admin-user-empty" class="empty-state hidden">
+      <div class="empty-icon">👤</div>
+      <p>No clinicians found.</p>
     </div>
   </div>
 </div>
@@ -301,21 +277,16 @@
      SCREEN: INDIVIDUAL PROGRAM VIEW
      ════════════════════════════════════════════════════ -->
 <div id="screen-program-detail" class="screen app-screen hidden">
-  <div class="screen-body">
+  <div class="screen-body no-float">
     <button class="back-btn" id="btn-back-from-detail">← Back to my programs</button>
     <h2 class="detail-program-name" id="detail-program-name"></h2>
-
-    <div id="detail-list" class="exercise-list">
-      <!-- populated by JS -->
-    </div>
-
+    <div id="detail-list" class="exercise-list"></div>
     <div class="detail-actions">
       <button class="btn btn-primary" id="btn-send-saved">📤 Send to patient</button>
       <button class="btn btn-secondary" id="btn-resend-code">🔁 Resend code</button>
       <button class="btn btn-danger" id="btn-delete-program">🗑 Delete program</button>
     </div>
   </div>
-
   <!-- Delete confirmation -->
   <div id="delete-modal" class="modal-overlay hidden" role="dialog">
     <div class="modal-card">
@@ -326,8 +297,7 @@
       </div>
     </div>
   </div>
-
-  <!-- Resend phone modal -->
+  <!-- Resend modal -->
   <div id="resend-modal" class="modal-overlay hidden" role="dialog">
     <div class="modal-card">
       <h3 class="modal-title">Resend access code</h3>
@@ -344,39 +314,28 @@
 </div>
 
 <!-- ════════════════════════════════════════════════════
-     ADD NEW EXERCISE MODAL
-     FIX: Moved to top level (outside all screen divs) so it
-     is never hidden by a parent screen's display:none.
-     Previously nested inside screen-current which meant it
-     was invisible whenever that screen wasn't active —
-     including when opened from the Exercises screen.
+     ADD NEW EXERCISE MODAL (top-level — never inside a screen)
      ════════════════════════════════════════════════════ -->
 <div id="add-exercise-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Add new exercise">
   <div class="modal-card">
     <h3 class="modal-title">Add new exercise</h3>
-
     <div id="add-exercise-msg" class="alert hidden"></div>
-
     <div class="form-group">
       <label class="form-label" for="new-ex-name">Exercise name</label>
       <input class="form-input" type="text" id="new-ex-name" placeholder="e.g. Wall Slide">
     </div>
-
     <div class="form-group">
       <label class="form-label" for="new-ex-instructions">Instructions</label>
       <textarea class="form-input" id="new-ex-instructions" rows="4" placeholder="Step-by-step, written for the patient to follow at home…"></textarea>
     </div>
-
     <div class="form-group">
       <label class="form-label" for="new-ex-keywords">Search keywords (comma separated, optional)</label>
       <input class="form-input" type="text" id="new-ex-keywords" placeholder="shoulder, rotator cuff, standing">
     </div>
-
     <div class="form-group">
       <label class="form-label" for="new-ex-photo">Photo (optional)</label>
       <input type="file" accept="image/*" id="new-ex-photo">
     </div>
-
     <div class="modal-actions">
       <button class="btn btn-primary" id="btn-save-new-exercise">Save exercise</button>
       <button class="btn btn-secondary" id="btn-cancel-new-exercise">Cancel</button>
@@ -385,27 +344,46 @@
 </div>
 
 <!-- ════════════════════════════════════════════════════
-     SCREEN: PATIENT VIEW (public — no login required)
+     INVITE USER MODAL (top-level — never inside a screen)
+     ════════════════════════════════════════════════════ -->
+<div id="invite-user-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Add new user">
+  <div class="modal-card">
+    <h3 class="modal-title">Add new user</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.5;">
+      The new clinician will receive an email with a link to set up their account and password.
+    </p>
+    <div id="invite-user-msg" class="alert hidden"></div>
+    <div class="form-group">
+      <label class="form-label" for="invite-name">Full name</label>
+      <input class="form-input" type="text" id="invite-name" placeholder="e.g. Jane Smith">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="invite-email">Email address</label>
+      <input class="form-input" type="email" id="invite-email" placeholder="jane@example.com">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="btn-confirm-invite">Send invite</button>
+      <button class="btn btn-secondary" id="btn-cancel-invite">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     PATIENT SCREENS
      ════════════════════════════════════════════════════ -->
 <div id="screen-patient-entry" class="screen hidden">
   <div class="patient-wrap">
-    <div class="patient-logo">
-      <span class="login-wordmark">selko</span>
-    </div>
+    <div class="patient-logo"><span class="login-wordmark">selko</span></div>
     <h1 class="patient-title">Your exercise program</h1>
     <p class="patient-sub">Enter the 4-digit code from your text message</p>
-
     <div id="patient-error" class="alert alert-error hidden"></div>
-
     <div class="code-inputs" id="code-inputs">
       <input class="code-digit" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 1">
       <input class="code-digit" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 2">
       <input class="code-digit" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 3">
       <input class="code-digit" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 4">
     </div>
-
     <button class="btn btn-primary btn-full" id="btn-patient-submit">View my program</button>
-
     <div class="lang-toggle">
       <button class="lang-btn active" data-lang="en" id="btn-lang-en">EN</button>
       <span class="lang-sep">|</span>
@@ -414,79 +392,51 @@
   </div>
 </div>
 
-<!-- Patient welcome (after code entry) -->
 <div id="screen-patient-home" class="screen hidden">
   <div class="patient-wrap">
-    <div class="patient-logo">
-      <span class="login-wordmark">selko</span>
-    </div>
+    <div class="patient-logo"><span class="login-wordmark">selko</span></div>
     <h1 class="patient-title" id="pt-welcome-title">Welcome!</h1>
     <p class="patient-sub" id="pt-welcome-sub">Your personalized exercise program is ready.</p>
-
-    <button class="btn btn-primary btn-full" id="btn-patient-view-program">
-      View my program
-    </button>
-
+    <button class="btn btn-primary btn-full" id="btn-patient-view-program">View my program</button>
     <div class="lang-toggle">
       <button class="lang-btn active" data-lang="en" id="btn-lang-en2">EN</button>
       <span class="lang-sep">|</span>
       <button class="lang-btn" data-lang="es" id="btn-lang-es2">ES</button>
     </div>
-
     <p class="patient-footer" id="pt-footer">Reach out to your provider with any questions or concerns.</p>
   </div>
 </div>
 
-<!-- Patient exercise list -->
 <div id="screen-patient-list" class="screen hidden">
   <div class="screen-body patient-screen">
     <button class="back-btn" id="btn-patient-back-home">← Back</button>
     <h2 class="detail-program-name" id="pt-list-title">My exercises</h2>
-
-    <div id="patient-exercise-grid" class="exercise-grid patient-grid">
-      <!-- populated by JS -->
-    </div>
-
+    <div id="patient-exercise-grid" class="exercise-grid patient-grid"></div>
     <p class="patient-footer" id="pt-footer2">Reach out to your provider with any questions or concerns.</p>
   </div>
 </div>
 
-<!-- Patient individual exercise -->
 <div id="screen-patient-exercise" class="screen hidden">
   <div class="screen-body patient-screen">
     <button class="back-btn" id="btn-patient-back-list">← Back to exercises</button>
-
     <h2 class="detail-program-name" id="pt-ex-name"></h2>
-
     <img class="pt-ex-img" id="pt-ex-img" src="" alt="">
-
     <div id="pt-ex-video-wrap" class="hidden">
       <video class="pt-ex-video" id="pt-ex-video" controls playsinline></video>
     </div>
-
     <div class="pt-params" id="pt-params"></div>
-
     <div class="pt-instructions" id="pt-instructions"></div>
-
     <div class="pt-comments" id="pt-comments"></div>
-
-    <button class="btn-complete" id="btn-complete">
-      ✓ Mark as done
-    </button>
+    <button class="btn-complete" id="btn-complete">✓ Mark as done</button>
     <p class="complete-done hidden" id="complete-done">✓ Completed today</p>
-
     <p class="patient-footer" id="pt-footer3">Reach out to your provider with any questions or concerns.</p>
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════════════
-     TOAST notification
-     ════════════════════════════════════════════════════ -->
+<!-- Toast -->
 <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 
-<!-- ════════════════════════════════════════════════════
-     SCRIPTS
-     ════════════════════════════════════════════════════ -->
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script src="selko-hep-data.js"></script>
