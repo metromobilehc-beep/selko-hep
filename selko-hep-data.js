@@ -36,7 +36,7 @@ const EXERCISE_LIBRARY = [
       'lower extremity', 'gluteal strengthening', 'posterior chain',
       'hip hyperextension', 'leg raise', 'table exercise', 'prone position'
     ],
-    instructions: '',
+    instructions: 'Lie face down on a firm surface. Keeping your knee straight, slowly lift one leg a few inches off the surface, squeezing your buttock at the top. Hold briefly, then lower with control. Keep your hips flat on the surface the whole time — don\'t arch your lower back to lift the leg higher.',
     date_added:   '2026-06-29',
     added_by:     'Evan',
   },
@@ -52,7 +52,7 @@ const EXERCISE_LIBRARY = [
       'terminal knee extension', 'leg extension', 'sitting position',
       'quad set variation'
     ],
-    instructions: '',
+    instructions: 'Sit in a sturdy chair with your back supported. Slowly straighten one knee until your leg is fully extended out in front of you. Hold briefly at the top, then lower slowly back down. Keep your thigh on the seat throughout — only your lower leg should move.',
     date_added:   '2026-06-29',
     added_by:     'Evan',
   },
@@ -68,7 +68,7 @@ const EXERCISE_LIBRARY = [
       'lower extremity', 'knee immobilization exercise',
       'post-op quad activation', 'hooklying'
     ],
-    instructions: '',
+    instructions: 'Lie on your back with one knee bent, foot flat on the surface, and the other leg straight. Tighten the thigh muscle of the straight leg, then lift it to the height of the opposite bent knee. Hold briefly, then lower slowly with control. Keep the knee locked straight the entire time.',
     date_added:   '2026-06-29',
     added_by:     'Evan',
   },
@@ -84,7 +84,7 @@ const EXERCISE_LIBRARY = [
       'core activation', 'posterior chain', 'hooklying',
       'hamstrings', 'pelvic lift'
     ],
-    instructions: '',
+    instructions: 'Lie on your back with both knees bent and feet flat, hip-width apart. Squeeze your buttocks and lift your hips up until your body forms a straight line from shoulders to knees. Hold briefly at the top, then lower slowly. Avoid arching your lower back excessively.',
     date_added:   '2026-06-29',
     added_by:     'Evan',
   },
@@ -100,7 +100,7 @@ const EXERCISE_LIBRARY = [
       'lower extremity', 'post-op knee exercise',
       'knee extension with support'
     ],
-    instructions: '',
+    instructions: 'Lie on your back with a rolled towel or small bolster under your knee. Keeping the back of your knee on the bolster, straighten your lower leg until it\'s fully extended. Hold briefly, then lower slowly. This is a smaller, gentler motion than a full leg extension.',
     date_added:   '2026-06-29',
     added_by:     'Evan',
   },
@@ -115,7 +115,7 @@ const EXERCISE_LIBRARY = [
       'quads', 'seated', 'quadriceps strengthening', 'lower extremity',
       'terminal knee extension', 'leg extension', 'sitting position'
     ],
-    instructions: '',
+    instructions: 'Sit in a sturdy chair with your back supported. Slowly straighten one knee all the way out in front of you until your leg is fully extended. Hold for a few seconds at the top, then lower slowly. Keep your thigh in contact with the seat throughout.',
     date_added:   '2026-06-29',
     added_by:     'Evan',
   },
@@ -131,7 +131,7 @@ const EXERCISE_LIBRARY = [
       'hip strengthening', 'lateral leg raise', 'lower extremity',
       'frontal plane'
     ],
-    instructions: '',
+    instructions: 'Lie on your side with your legs stacked and your body in a straight line. Keeping your knee straight and toes pointing forward, lift your top leg up toward the ceiling. Hold briefly, then lower slowly with control. Don\'t let your hip roll backward as you lift.',
     date_added:   '2026-06-29',
     added_by:     'Evan',
   },
@@ -146,7 +146,7 @@ const EXERCISE_LIBRARY = [
       'add', 'adductors', 'sidelying', 'inner thigh', 'lower leg lift',
       'hip strengthening', 'lower extremity', 'frontal plane'
     ],
-    instructions: '',
+    instructions: 'Lie on your side with your bottom leg straight and your top leg bent, foot planted in front of the bottom knee for support. Lift your bottom leg straight up toward the top leg. Hold briefly, then lower slowly with control. Keep your bottom leg straight throughout.',
     date_added:   '2026-06-29',
     added_by:     'Evan',
   },
@@ -162,7 +162,7 @@ const EXERCISE_LIBRARY = [
       'single leg stance', 'balance', 'lower extremity',
       'table-assisted standing'
     ],
-    instructions: '',
+    instructions: 'Stand at a counter or sturdy surface for balance. Keeping your thigh still, bend one knee and bring your heel up toward your buttock. Hold briefly at the top, then lower slowly with control. Avoid swinging your hip forward to compensate.',
     date_added:   '2026-06-29',
     added_by:     'Evan',
   },
@@ -178,7 +178,7 @@ const EXERCISE_LIBRARY = [
       'table-assisted', 'bilateral', 'mini squat', 'table squat',
       'balance support'
     ],
-    instructions: '',
+    instructions: 'Stand facing a sturdy table or counter, holding on for balance. With your feet shoulder-width apart, slowly bend your knees and lower your hips as if sitting into a chair, keeping your chest up. Go only as low as comfortable, then push back up to standing. Keep your knees tracking over your toes.',
     date_added:   '2026-06-29',
     added_by:     'Evan',
   },
@@ -193,7 +193,7 @@ const EXERCISE_LIBRARY = [
       'soleus', 'tip toes', 'calf raise', 'ankle plantarflexion',
       'standing', 'bilateral', 'balance support', 'table-assisted'
     ],
-    instructions: '',
+    instructions: 'Stand at a counter or sturdy surface, holding on for balance. Slowly rise up onto your toes as high as comfortable, then lower back down with control. Keep your legs straight and avoid rocking forward or backward.',
     date_added:   '2026-06-29',
     added_by:     'Evan',
   },
@@ -208,7 +208,7 @@ const EXERCISE_LIBRARY = [
       'toes', 'ankle dorsiflexion', 'tibialis anterior strengthening',
       'standing', 'balance', 'foot drop exercise'
     ],
-    instructions: '',
+    instructions: 'Stand at a counter or sturdy surface, holding on for balance. Keeping your heels on the ground, lift the front of your feet and toes up toward your shins as high as comfortable. Hold briefly, then lower with control.',
     date_added:   '2026-06-29',
     added_by:     'Evan',
   },
@@ -224,7 +224,7 @@ const EXERCISE_LIBRARY = [
       'lateral leg raise', 'standing balance', 'table-assisted',
       'frontal plane', 'single leg stance'
     ],
-    instructions: '',
+    instructions: 'Stand sideways next to a counter or sturdy surface, holding on for balance. Keeping your leg straight and toes pointing forward, lift the outside leg out to the side. Hold briefly, then lower slowly with control. Keep your body upright — don\'t lean to the side to lift higher.',
     date_added:   '2026-06-29',
     added_by:     'Evan',
   },
@@ -239,7 +239,7 @@ const EXERCISE_LIBRARY = [
       'glutes', 'glute max', 'gluteus maximus', 'hip strengthening',
       'posterior leg swing', 'table-assisted', 'balance', 'sagittal plane'
     ],
-    instructions: '',
+    instructions: 'Stand facing a counter or sturdy surface, holding on for balance. Keeping your knee straight, swing one leg backward behind you without leaning your upper body forward. Hold briefly, then return slowly with control.',
     date_added:   '2026-06-29',
     added_by:     'Evan',
   },
@@ -254,7 +254,7 @@ const EXERCISE_LIBRARY = [
       'ankle', 'resistance band', 'theraband', 'seated', 'supine',
       'ankle strengthening', 'foot', 'pointing toes'
     ],
-    instructions: '',
+    instructions: 'Sit or lie down with a resistance band looped around the ball of one foot, holding the ends of the band in your hands. Slowly point your toes away from you against the resistance of the band, then relax back to the starting position with control.',
     date_added:   '2026-06-29',
     added_by:     'Evan',
   },
@@ -270,7 +270,7 @@ const EXERCISE_LIBRARY = [
       'straight leg raise stretch', 'strap assisted', 'belt stretch',
       'lower extremity', 'hooklying'
     ],
-    instructions: '',
+    instructions: 'Lie on your back with a strap or towel looped around the ball of one foot. Keeping that knee straight, use the strap to gently pull your leg up toward the ceiling until you feel a stretch in the back of your thigh. Hold the stretch, breathing normally, then slowly release.',
     date_added:   '2026-07-12',
     added_by:     'Evan',
   },
@@ -286,7 +286,7 @@ const EXERCISE_LIBRARY = [
       'upper extremity', 'infraspinatus', 'teres minor',
       'shoulder strengthening'
     ],
-    instructions: '',
+    instructions: 'Stand with your elbow bent to 90 degrees and tucked at your side, holding a resistance band anchored in front of you. Keeping your elbow pinned to your side, rotate your forearm outward away from your body. Hold briefly, then return slowly with control.',
     date_added:   '2026-07-12',
     added_by:     'Evan',
   },
@@ -301,7 +301,7 @@ const EXERCISE_LIBRARY = [
       'IR', 'rotator cuff', 'resistance band', 'theraband', 'standing',
       'upper extremity', 'subscapularis', 'shoulder strengthening'
     ],
-    instructions: '',
+    instructions: 'Stand with your elbow bent to 90 degrees and tucked at your side, holding a resistance band anchored to the side. Keeping your elbow pinned to your side, rotate your forearm inward across your body. Hold briefly, then return slowly with control.',
     date_added:   '2026-07-12',
     added_by:     'Evan',
   },
@@ -317,7 +317,7 @@ const EXERCISE_LIBRARY = [
       'middle trapezius', 'shoulder retraction', 'posture',
       'back strengthening', 'horizontal pull'
     ],
-    instructions: '',
+    instructions: 'Stand holding a resistance band anchored in front of you at chest height, arms extended forward. Pull your elbows back, squeezing your shoulder blades together, keeping your elbows close to your body. Hold briefly, then return slowly with control.',
     date_added:   '2026-07-12',
     added_by:     'Evan',
   },
@@ -333,7 +333,7 @@ const EXERCISE_LIBRARY = [
       'upper extremity', 'latissimus dorsi', 'shoulder depression',
       'back strengthening', 'vertical pull', 'shoulder adduction'
     ],
-    instructions: '',
+    instructions: 'Stand holding a resistance band anchored overhead, arms extended up. Pull your elbows down and slightly back toward your sides, as if pulling the band down behind your head. Hold briefly, then return slowly with control.',
     date_added:   '2026-07-12',
     added_by:     'Evan',
   },
@@ -349,7 +349,7 @@ const EXERCISE_LIBRARY = [
       'theraband', 'standing', 'upper extremity', 'serratus anterior',
       'scapular protraction', 'horizontal push', 'chest strengthening'
     ],
-    instructions: '',
+    instructions: 'Stand holding a resistance band anchored behind you at chest height. Starting with your hands near your chest, push forward as if throwing a punch, extending your arm fully and rotating your palm downward. Return slowly with control, keeping your shoulder blade from winging out.',
     date_added:   '2026-07-12',
     added_by:     'Evan',
   },
@@ -365,7 +365,7 @@ const EXERCISE_LIBRARY = [
       'anterior deltoid', 'shoulder strengthening', 'front raise',
       'sagittal plane'
     ],
-    instructions: '',
+    instructions: 'Stand holding a light weight in one hand at your side, palm facing your body. Keeping your elbow straight, slowly raise your arm forward and up in front of you to about shoulder height. Hold briefly, then lower slowly with control.',
     date_added:   '2026-07-12',
     added_by:     'Evan',
   },
@@ -381,7 +381,7 @@ const EXERCISE_LIBRARY = [
       'upper extremity', 'middle deltoid', 'shoulder strengthening',
       'frontal plane', 'side raise'
     ],
-    instructions: '',
+    instructions: 'Stand holding a light weight in one hand at your side, palm facing your body. Keeping your elbow straight, slowly raise your arm out to the side up to about shoulder height. Hold briefly, then lower slowly with control. Avoid shrugging your shoulder up toward your ear.',
     date_added:   '2026-07-12',
     added_by:     'Evan',
   },
@@ -397,7 +397,7 @@ const EXERCISE_LIBRARY = [
       'upper extremity', 'scapular plane', 'supraspinatus',
       'rotator cuff', 'shoulder strengthening', 'diagonal raise'
     ],
-    instructions: '',
+    instructions: 'Stand holding a light weight in one hand at your side, thumb pointed slightly upward. Keeping your elbow straight, raise your arm up and out at roughly a 45-degree angle from your body (between a front raise and a side raise), to about shoulder height. Hold briefly, then lower slowly with control.',
     date_added:   '2026-07-12',
     added_by:     'Evan',
   },
@@ -413,7 +413,7 @@ const EXERCISE_LIBRARY = [
       'plank hold', 'shoulder stability', 'bodyweight', 'floor exercise',
       'trunk strengthening'
     ],
-    instructions: '',
+    instructions: 'Lie face down, then prop yourself up on your forearms and toes, keeping your body in one straight line from head to heels. Tighten your abdominal muscles and hold this position, breathing normally, without letting your hips sag or pike up. Hold for the prescribed time, then rest.',
     date_added:   '2026-07-12',
     added_by:     'Evan',
   },
@@ -429,7 +429,7 @@ const EXERCISE_LIBRARY = [
       'external rotator stretch', 'figure four', 'deep gluteal stretch',
       'sciatica', 'lower extremity', 'hooklying', 'hip internal rotation'
     ],
-    instructions: '',
+    instructions: 'Lie on your back with both knees bent. Cross one ankle over the opposite knee. Reach through and gently pull the uncrossed thigh toward your chest until you feel a stretch in the buttock of the crossed leg. Hold the stretch, breathing normally, then slowly release.',
     date_added:   '2026-07-12',
     added_by:     'Evan',
   },
