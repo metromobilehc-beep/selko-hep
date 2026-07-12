@@ -112,10 +112,12 @@ const T = {
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => {
     s.classList.remove('active');
+    s.classList.add('hidden');
     s.style.display = 'none';
   });
   const el = document.getElementById(id);
   if (el) {
+    el.classList.remove('hidden');
     el.style.display = 'flex';
     el.classList.add('active');
   }
