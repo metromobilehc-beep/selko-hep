@@ -115,6 +115,7 @@
       <li><button class="nav-item" data-screen="screen-home"><span class="nav-icon-wrap">🏠</span> Home</button></li>
       <li><button class="nav-item" data-screen="screen-exercises"><span class="nav-icon-wrap">🔍</span> Exercises</button></li>
       <li><button class="nav-item" data-screen="screen-programs"><span class="nav-icon-wrap">📋</span> My programs</button></li>
+      <li class="admin-only hidden"><button class="nav-item" data-screen="screen-admin"><span class="nav-icon-wrap">⚙️</span> Admin</button></li>
       <li><button class="nav-item" id="btn-logout"><span class="nav-icon-wrap">🚪</span> Log out</button></li>
     </ul>
     <div class="nav-user" id="nav-user-email"></div>
@@ -159,7 +160,7 @@
       <button class="search-clear hidden" id="btn-search-clear">✕</button>
     </div>
 
-    <button class="btn btn-secondary btn-full" id="btn-open-add-exercise" style="margin-bottom:14px;">
+    <button class="btn btn-secondary btn-full admin-only hidden" id="btn-open-add-exercise" style="margin-bottom:14px;">
       ＋ Add new exercise
     </button>
 
@@ -305,6 +306,30 @@
       <p>No programs yet.<br>Go to Exercises to build your first program.</p>
     </div>
     <p class="programs-hint">Hold a program name to rename it</p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     SCREEN: ADMIN (admin/super-admin only)
+     Manage this company's custom exercises — add, view, delete.
+     ════════════════════════════════════════════════════ -->
+<div id="screen-admin" class="screen app-screen hidden">
+  <div class="screen-body">
+    <h2 class="detail-program-name">Manage exercise library</h2>
+    <p class="screen-hint">Exercises added here appear alongside the built-in library for everyone at your company.</p>
+
+    <button class="btn btn-primary btn-full" id="btn-open-add-exercise-admin" style="margin-bottom:18px;">
+      ＋ Add new exercise
+    </button>
+
+    <div id="admin-custom-ex-list" class="programs-list">
+      <!-- populated by JS -->
+    </div>
+
+    <div id="admin-custom-ex-empty" class="empty-state hidden">
+      <div class="empty-icon">🏋️</div>
+      <p>No custom exercises added yet.</p>
+    </div>
   </div>
 </div>
 

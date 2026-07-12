@@ -27,7 +27,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 const SUPABASE_URL  = 'https://zxserlkhwkfoqiepurdr.supabase.co'; // selko-prod, shared with Cred/Comply/Billing
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4c2VybGtod2tmb3FpZXB1cmRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NDM1NDIsImV4cCI6MjA5NjAxOTU0Mn0.cA9LJSn5t4sIbIemdQGQsdwtQFwb-6Q9xIZi48UYq34'; // grab from Project Settings → API (same anon key Cred/Comply use)
+const SUPABASE_ANON = 'REPLACE_WITH_SUPABASE_ANON_KEY'; // grab from Project Settings → API (same anon key Cred/Comply use)
 
 /* ── Supabase client ──────────────────────────────────────────── */
 const { createClient } = supabase;
@@ -47,6 +47,7 @@ const state = {
   patientProgram:  null,        // program loaded in patient view
   completedToday:  {},          // { exerciseId: true } for patient daily tracking
   exerciseLibrary: [],          // built-in EXERCISE_LIBRARY + this company's custom exercises
+  isAdmin:         false,       // role === 'admin' || is_super_admin === true
 };
 
 /** Load the logged-in clinician's company_id + has_hep flag from profiles/companies.
@@ -54,7 +55,7 @@ const state = {
 async function loadCompanyContext() {
   const { data: profile, error: profErr } = await db
     .from('profiles')
-    .select('company_id')
+    .select('company_id, role, is_super_admin')
     .eq('id', state.user.id)
     .single();
 
@@ -64,6 +65,7 @@ async function loadCompanyContext() {
     return false;
   }
   state.companyId = profile.company_id;
+  state.isAdmin   = profile.role === 'admin' || profile.is_super_admin === true;
 
   const { data: company, error: compErr } = await db
     .from('companies')
@@ -108,6 +110,50 @@ async function loadCustomExercises() {
   }));
 
   state.exerciseLibrary = [...EXERCISE_LIBRARY, ...custom];
+}
+
+/** Render the admin-only list of this company's custom exercises,
+ *  with a delete button on each. Built-in exercises never show here
+ *  — they're not stored per-company and can't be deleted from the UI. */
+function renderAdminExerciseList() {
+  const list  = document.getElementById('admin-custom-ex-list');
+  const empty = document.getElementById('admin-custom-ex-empty');
+  const custom = state.exerciseLibrary.filter(ex => ex.is_custom);
+
+  if (custom.length === 0) {
+    list.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  list.innerHTML = custom.map(ex => `
+    <div class="program-item" data-id="${ex.id}">
+      <div class="program-item-info">
+        <div class="program-item-name">${ex.name}</div>
+        <div class="program-item-meta">${ex.instructions ? ex.instructions.slice(0, 60) + (ex.instructions.length > 60 ? '…' : '') : 'No instructions added'}</div>
+      </div>
+      <button class="ex-list-remove btn-delete-custom-ex" data-id="${ex.id}" aria-label="Delete ${ex.name}">🗑</button>
+    </div>`).join('');
+
+  list.querySelectorAll('.btn-delete-custom-ex').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const ex = custom.find(c => c.id === id);
+      if (!confirm(`Delete "${ex?.name}"? This can't be undone.`)) return;
+
+      const { error } = await db.from('hep_custom_exercises').delete().eq('id', id);
+      if (error) {
+        console.error(error);
+        showToast('Could not delete — try again');
+        return;
+      }
+      await loadCustomExercises();
+      renderAdminExerciseList();
+      showToast('Exercise deleted');
+    });
+  });
 }
 
 /** Upload an optional exercise photo to the same hep-media bucket
@@ -183,6 +229,7 @@ async function handleSaveNewExercise() {
   photoEl.value = '';
   await loadCustomExercises();
   renderExerciseGrid(document.getElementById('exercise-search').value);
+  if (document.getElementById('admin-custom-ex-list')) renderAdminExerciseList();
   document.getElementById('add-exercise-modal').classList.add('hidden');
   showToast('Exercise added');
 }
@@ -413,7 +460,16 @@ async function onLoginSuccess() {
     return;
   }
   loadPrograms();
+  applyAdminVisibility();
   showScreen('screen-home');
+}
+
+/** Show/hide admin-only UI (Add exercise button, Admin nav item)
+ *  based on state.isAdmin, set during loadCompanyContext(). */
+function applyAdminVisibility() {
+  document.querySelectorAll('.admin-only').forEach(el => {
+    el.classList.toggle('hidden', !state.isAdmin);
+  });
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1167,6 +1223,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('add-exercise-msg').classList.add('hidden');
     document.getElementById('add-exercise-modal').classList.remove('hidden');
   });
+  document.getElementById('btn-open-add-exercise-admin').addEventListener('click', () => {
+    document.getElementById('add-exercise-msg').classList.add('hidden');
+    document.getElementById('add-exercise-modal').classList.remove('hidden');
+  });
   document.getElementById('btn-cancel-new-exercise').addEventListener('click', () => {
     document.getElementById('add-exercise-modal').classList.add('hidden');
   });
@@ -1185,6 +1245,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateBadges();
       }
       if (target === 'screen-programs') loadPrograms();
+      if (target === 'screen-admin') renderAdminExerciseList();
       showScreen(target);
     });
   });
