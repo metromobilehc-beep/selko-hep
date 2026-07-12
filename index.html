@@ -62,10 +62,6 @@
 
 <!-- ════════════════════════════════════════════════════
      SCREEN: SET NEW PASSWORD
-     Shown when a password-recovery link is clicked — the
-     link logs the user in via a temporary Supabase session,
-     and this screen is what actually makes them set a new
-     password before they can reach the app.
      ════════════════════════════════════════════════════ -->
 <div id="screen-new-password" class="screen">
   <div class="login-wrap">
@@ -91,7 +87,7 @@
 </div>
 
 <!-- ════════════════════════════════════════════════════
-     SHARED HEADER (used on all authenticated screens)
+     SHARED HEADER
      ════════════════════════════════════════════════════ -->
 <header id="app-header" class="app-header hidden">
   <button class="menu-toggle" id="btn-menu" aria-label="Open menu">
@@ -104,8 +100,12 @@
   </div>
 </header>
 
-<!-- Side-drawer nav -->
-<nav id="side-nav" class="side-nav hidden" aria-hidden="true">
+<!-- Side-drawer nav
+     FIX: Added inert attribute so that when the nav is closed,
+     nothing inside it can receive focus or intercept clicks.
+     This resolves the aria-hidden/focus conflict that was
+     blocking the Add New Exercise button from being clickable. -->
+<nav id="side-nav" class="side-nav hidden" inert aria-hidden="true">
   <div class="nav-overlay" id="nav-overlay"></div>
   <div class="nav-panel">
     <div class="nav-header">
@@ -217,7 +217,6 @@
     </div>
 
     <div id="current-send-area" class="hidden">
-      <!-- Program name (required before sending) -->
       <div class="form-group">
         <label class="form-label" for="current-program-name">Program name</label>
         <input class="form-input" type="text" id="current-program-name" placeholder="Do not use patient identifying information">
@@ -252,40 +251,6 @@
       <p class="modal-hint">Patient receives a link + 4-digit code via text. No identifying info is stored.</p>
     </div>
   </div>
-
-  <!-- Add new exercise modal -->
-  <div id="add-exercise-modal" class="modal-overlay hidden" role="dialog">
-    <div class="modal-card">
-      <h3 class="modal-title">Add new exercise</h3>
-
-      <div id="add-exercise-msg" class="alert hidden"></div>
-
-      <div class="form-group">
-        <label class="form-label" for="new-ex-name">Exercise name</label>
-        <input class="form-input" type="text" id="new-ex-name" placeholder="e.g. Wall Slide">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="new-ex-instructions">Instructions</label>
-        <textarea class="form-input" id="new-ex-instructions" rows="4" placeholder="Step-by-step, written for the patient to follow at home…"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="new-ex-keywords">Search keywords (comma separated, optional)</label>
-        <input class="form-input" type="text" id="new-ex-keywords" placeholder="shoulder, rotator cuff, standing">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="new-ex-photo">Photo (optional)</label>
-        <input type="file" accept="image/*" id="new-ex-photo">
-      </div>
-
-      <div class="modal-actions">
-        <button class="btn btn-primary" id="btn-save-new-exercise">Save exercise</button>
-        <button class="btn btn-secondary" id="btn-cancel-new-exercise">Cancel</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- ════════════════════════════════════════════════════
@@ -311,7 +276,6 @@
 
 <!-- ════════════════════════════════════════════════════
      SCREEN: ADMIN (admin/super-admin only)
-     Manage this company's custom exercises — add, view, delete.
      ════════════════════════════════════════════════════ -->
 <div id="screen-admin" class="screen app-screen hidden">
   <div class="screen-body">
@@ -380,6 +344,47 @@
 </div>
 
 <!-- ════════════════════════════════════════════════════
+     ADD NEW EXERCISE MODAL
+     FIX: Moved to top level (outside all screen divs) so it
+     is never hidden by a parent screen's display:none.
+     Previously nested inside screen-current which meant it
+     was invisible whenever that screen wasn't active —
+     including when opened from the Exercises screen.
+     ════════════════════════════════════════════════════ -->
+<div id="add-exercise-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Add new exercise">
+  <div class="modal-card">
+    <h3 class="modal-title">Add new exercise</h3>
+
+    <div id="add-exercise-msg" class="alert hidden"></div>
+
+    <div class="form-group">
+      <label class="form-label" for="new-ex-name">Exercise name</label>
+      <input class="form-input" type="text" id="new-ex-name" placeholder="e.g. Wall Slide">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="new-ex-instructions">Instructions</label>
+      <textarea class="form-input" id="new-ex-instructions" rows="4" placeholder="Step-by-step, written for the patient to follow at home…"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="new-ex-keywords">Search keywords (comma separated, optional)</label>
+      <input class="form-input" type="text" id="new-ex-keywords" placeholder="shoulder, rotator cuff, standing">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="new-ex-photo">Photo (optional)</label>
+      <input type="file" accept="image/*" id="new-ex-photo">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="btn-save-new-exercise">Save exercise</button>
+      <button class="btn btn-secondary" id="btn-cancel-new-exercise">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
      SCREEN: PATIENT VIEW (public — no login required)
      ════════════════════════════════════════════════════ -->
 <div id="screen-patient-entry" class="screen hidden">
@@ -401,7 +406,6 @@
 
     <button class="btn btn-primary btn-full" id="btn-patient-submit">View my program</button>
 
-    <!-- EN / ES toggle -->
     <div class="lang-toggle">
       <button class="lang-btn active" data-lang="en" id="btn-lang-en">EN</button>
       <span class="lang-sep">|</span>
@@ -423,7 +427,6 @@
       View my program
     </button>
 
-    <!-- EN / ES toggle -->
     <div class="lang-toggle">
       <button class="lang-btn active" data-lang="en" id="btn-lang-en2">EN</button>
       <span class="lang-sep">|</span>
