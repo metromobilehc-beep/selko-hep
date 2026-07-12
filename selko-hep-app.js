@@ -27,7 +27,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 const SUPABASE_URL  = 'https://zxserlkhwkfoqiepurdr.supabase.co'; // selko-prod, shared with Cred/Comply/Billing
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4c2VybGtod2tmb3FpZXB1cmRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NDM1NDIsImV4cCI6MjA5NjAxOTU0Mn0.cA9LJSn5t4sIbIemdQGQsdwtQFwb-6Q9xIZi48UYq34'; // grab from Project Settings → API (same anon key Cred/Comply use)
+const SUPABASE_ANON = 'REPLACE_WITH_SUPABASE_ANON_KEY'; // grab from Project Settings → API (same anon key Cred/Comply use)
 
 /* ── Supabase client ──────────────────────────────────────────── */
 const { createClient } = supabase;
@@ -46,6 +46,7 @@ const state = {
   lang:            'en',        // 'en' | 'es'
   patientProgram:  null,        // program loaded in patient view
   completedToday:  {},          // { exerciseId: true } for patient daily tracking
+  exerciseLibrary: [],          // built-in EXERCISE_LIBRARY + this company's custom exercises
 };
 
 /** Load the logged-in clinician's company_id + has_hep flag from profiles/companies.
@@ -74,7 +75,116 @@ async function loadCompanyContext() {
     showToast('HEP is not enabled for your company yet — contact your admin');
     return false;
   }
+
+  await loadCustomExercises();
   return true;
+}
+
+/** Load this company's custom exercises and merge them with the
+ *  built-in EXERCISE_LIBRARY into the working list used everywhere
+ *  (search, grid, program builder, patient view all read from
+ *  state.exerciseLibrary rather than EXERCISE_LIBRARY directly). */
+async function loadCustomExercises() {
+  const { data, error } = await db
+    .from('hep_custom_exercises')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error(error);
+    state.exerciseLibrary = [...EXERCISE_LIBRARY];
+    return;
+  }
+
+  const custom = (data || []).map(row => ({
+    id:           row.id,
+    name:         row.name,
+    image:        row.image || '',
+    keywords:     row.keywords || [],
+    instructions: row.instructions || '',
+    date_added:   row.created_at,
+    added_by:     'custom',
+    is_custom:    true,
+  }));
+
+  state.exerciseLibrary = [...EXERCISE_LIBRARY, ...custom];
+}
+
+/** Upload an optional exercise photo to the same hep-media bucket
+ *  used for patient photos/videos, under a dedicated subfolder so
+ *  the two don't collide. */
+async function uploadExercisePhoto(file) {
+  const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  const path = `${state.companyId}/exercise-library/${Date.now()}.${ext}`;
+
+  const { error } = await db.storage.from('hep-media').upload(path, file, {
+    cacheControl: '3600',
+    upsert: false,
+  });
+  if (error) {
+    console.error(error);
+    return null;
+  }
+  const { data } = db.storage.from('hep-media').getPublicUrl(path);
+  return data.publicUrl;
+}
+
+async function handleSaveNewExercise() {
+  const nameEl  = document.getElementById('new-ex-name');
+  const instrEl = document.getElementById('new-ex-instructions');
+  const kwEl    = document.getElementById('new-ex-keywords');
+  const photoEl = document.getElementById('new-ex-photo');
+  const msgEl   = document.getElementById('add-exercise-msg');
+  const btn     = document.getElementById('btn-save-new-exercise');
+  msgEl.classList.add('hidden');
+
+  const name = nameEl.value.trim();
+  if (!name) {
+    msgEl.textContent = 'Please enter an exercise name.';
+    msgEl.className = 'alert alert-error';
+    msgEl.classList.remove('hidden');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  let imageUrl = '';
+  if (photoEl.files[0]) {
+    imageUrl = await uploadExercisePhoto(photoEl.files[0]) || '';
+  }
+
+  const keywords = kwEl.value.split(',').map(k => k.trim()).filter(Boolean);
+
+  const { error } = await db.from('hep_custom_exercises').insert([{
+    company_id:   state.companyId,
+    created_by:   state.user.id,
+    name,
+    image:        imageUrl,
+    instructions: instrEl.value.trim(),
+    keywords,
+  }]);
+
+  btn.disabled = false;
+  btn.textContent = 'Save exercise';
+
+  if (error) {
+    console.error(error);
+    msgEl.textContent = 'Could not save exercise — try again.';
+    msgEl.className = 'alert alert-error';
+    msgEl.classList.remove('hidden');
+    return;
+  }
+
+  // reset form, refresh library + grid, close modal
+  nameEl.value = '';
+  instrEl.value = '';
+  kwEl.value = '';
+  photoEl.value = '';
+  await loadCustomExercises();
+  renderExerciseGrid(document.getElementById('exercise-search').value);
+  document.getElementById('add-exercise-modal').classList.add('hidden');
+  showToast('Exercise added');
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -173,9 +283,9 @@ function fmtDate(iso) {
   return iso ? new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : '';
 }
 
-/** Find an exercise in EXERCISE_LIBRARY by id */
+/** Find an exercise in the working library (built-in + custom) by id */
 function getExercise(id) {
-  return EXERCISE_LIBRARY.find(e => e.id === id) || null;
+  return state.exerciseLibrary.find(e => e.id === id) || null;
 }
 
 /** Upload a patient photo/video to the hep-media bucket and return its public URL.
@@ -333,7 +443,7 @@ function renderExerciseGrid(filter = '') {
   const grid = document.getElementById('exercise-grid');
   const term = filter.toLowerCase().trim();
 
-  const filtered = EXERCISE_LIBRARY.filter(ex => {
+  const filtered = state.exerciseLibrary.filter(ex => {
     if (!term) return true;
     const haystack = [ex.name, ...(ex.keywords || [])].join(' ').toLowerCase();
     return haystack.includes(term);
@@ -1051,6 +1161,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-send-reset').addEventListener('click', handleForgotPassword);
   document.getElementById('btn-set-new-password').addEventListener('click', handleSetNewPassword);
   document.getElementById('btn-logout').addEventListener('click', handleLogout);
+
+  /* ─── Add exercise modal ─────────────────────────────────── */
+  document.getElementById('btn-open-add-exercise').addEventListener('click', () => {
+    document.getElementById('add-exercise-msg').classList.add('hidden');
+    document.getElementById('add-exercise-modal').classList.remove('hidden');
+  });
+  document.getElementById('btn-cancel-new-exercise').addEventListener('click', () => {
+    document.getElementById('add-exercise-modal').classList.add('hidden');
+  });
+  document.getElementById('btn-save-new-exercise').addEventListener('click', handleSaveNewExercise);
 
   /* ─── NAV ─────────────────────────────────────────────────── */
   document.getElementById('btn-menu').addEventListener('click', openNav);

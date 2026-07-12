@@ -159,6 +159,10 @@
       <button class="search-clear hidden" id="btn-search-clear">✕</button>
     </div>
 
+    <button class="btn btn-secondary btn-full" id="btn-open-add-exercise" style="margin-bottom:14px;">
+      ＋ Add new exercise
+    </button>
+
     <div class="exercise-grid" id="exercise-grid">
       <!-- populated by JS -->
     </div>
@@ -245,6 +249,40 @@
         <button class="btn btn-secondary" id="btn-cancel-send">Cancel</button>
       </div>
       <p class="modal-hint">Patient receives a link + 4-digit code via text. No identifying info is stored.</p>
+    </div>
+  </div>
+
+  <!-- Add new exercise modal -->
+  <div id="add-exercise-modal" class="modal-overlay hidden" role="dialog">
+    <div class="modal-card">
+      <h3 class="modal-title">Add new exercise</h3>
+
+      <div id="add-exercise-msg" class="alert hidden"></div>
+
+      <div class="form-group">
+        <label class="form-label" for="new-ex-name">Exercise name</label>
+        <input class="form-input" type="text" id="new-ex-name" placeholder="e.g. Wall Slide">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="new-ex-instructions">Instructions</label>
+        <textarea class="form-input" id="new-ex-instructions" rows="4" placeholder="Step-by-step, written for the patient to follow at home…"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="new-ex-keywords">Search keywords (comma separated, optional)</label>
+        <input class="form-input" type="text" id="new-ex-keywords" placeholder="shoulder, rotator cuff, standing">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="new-ex-photo">Photo (optional)</label>
+        <input type="file" accept="image/*" id="new-ex-photo">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="btn-save-new-exercise">Save exercise</button>
+        <button class="btn btn-secondary" id="btn-cancel-new-exercise">Cancel</button>
+      </div>
     </div>
   </div>
 </div>
