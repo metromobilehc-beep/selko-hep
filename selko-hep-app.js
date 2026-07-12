@@ -27,7 +27,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 const SUPABASE_URL  = 'https://zxserlkhwkfoqiepurdr.supabase.co'; // selko-prod, shared with Cred/Comply/Billing
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4c2VybGtod2tmb3FpZXB1cmRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NDM1NDIsImV4cCI6MjA5NjAxOTU0Mn0.cA9LJSn5t4sIbIemdQGQsdwtQFwb-6Q9xIZi48UYq34'; // grab from Project Settings → API (same anon key Cred/Comply use)
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4c2VybGtod2tmb3FpZXB1cmRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NDM1NDIsImV4cCI6MjA5NjAxOTU0Mn0.cA9LJSn5t4sIbIemdQGQsdwtQFwb-6Q9xIZi48UYq34';
 
 /* ── Supabase client ──────────────────────────────────────────── */
 const { createClient } = supabase;
@@ -37,21 +37,20 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON);
    STATE
    ═══════════════════════════════════════════════════════════════ */
 const state = {
-  user:            null,        // Supabase auth user
-  companyId:       null,        // from profiles table — required for every insert
-  currentSession:  [],          // [{exerciseId, sets, reps, freq, comment, patientPhoto, patientVideo}]
-  programs:        [],          // clinician's saved programs from DB
-  activeProgram:   null,        // program object currently open in detail view
-  pendingExId:     null,        // exercise id waiting for popup action
-  lang:            'en',        // 'en' | 'es'
-  patientProgram:  null,        // program loaded in patient view
-  completedToday:  {},          // { exerciseId: true } for patient daily tracking
-  exerciseLibrary: [],          // built-in EXERCISE_LIBRARY + this company's custom exercises
-  isAdmin:         false,       // role === 'admin' || is_super_admin === true
+  user:            null,
+  companyId:       null,
+  currentSession:  [],
+  programs:        [],
+  activeProgram:   null,
+  pendingExId:     null,
+  lang:            'en',
+  patientProgram:  null,
+  completedToday:  {},
+  exerciseLibrary: [],
+  isAdmin:         false,
 };
 
-/** Load the logged-in clinician's company_id + has_hep flag from profiles/companies.
- *  Every other Selko module (Cred, Comply) follows this same lookup. */
+/** Load the logged-in clinician's company_id + has_hep flag from profiles/companies. */
 async function loadCompanyContext() {
   const { data: profile, error: profErr } = await db
     .from('profiles')
@@ -82,10 +81,7 @@ async function loadCompanyContext() {
   return true;
 }
 
-/** Load this company's custom exercises and merge them with the
- *  built-in EXERCISE_LIBRARY into the working list used everywhere
- *  (search, grid, program builder, patient view all read from
- *  state.exerciseLibrary rather than EXERCISE_LIBRARY directly). */
+/** Load this company's custom exercises and merge with EXERCISE_LIBRARY. */
 async function loadCustomExercises() {
   const { data, error } = await db
     .from('hep_custom_exercises')
@@ -112,9 +108,7 @@ async function loadCustomExercises() {
   state.exerciseLibrary = [...EXERCISE_LIBRARY, ...custom];
 }
 
-/** Render the admin-only list of this company's custom exercises,
- *  with a delete button on each. Built-in exercises never show here
- *  — they're not stored per-company and can't be deleted from the UI. */
+/** Render the admin-only list of this company's custom exercises. */
 function renderAdminExerciseList() {
   const list  = document.getElementById('admin-custom-ex-list');
   const empty = document.getElementById('admin-custom-ex-empty');
@@ -156,9 +150,7 @@ function renderAdminExerciseList() {
   });
 }
 
-/** Upload an optional exercise photo to the same hep-media bucket
- *  used for patient photos/videos, under a dedicated subfolder so
- *  the two don't collide. */
+/** Upload an optional exercise photo to hep-media bucket. */
 async function uploadExercisePhoto(file) {
   const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase();
   const path = `${state.companyId}/exercise-library/${Date.now()}.${ext}`;
@@ -222,7 +214,6 @@ async function handleSaveNewExercise() {
     return;
   }
 
-  // reset form, refresh library + grid, close modal
   nameEl.value = '';
   instrEl.value = '';
   kwEl.value = '';
@@ -235,8 +226,7 @@ async function handleSaveNewExercise() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   TRANSLATIONS  (static UI strings only — exercise text uses
-   Google Translate API on the fly for ES)
+   TRANSLATIONS
    ═══════════════════════════════════════════════════════════════ */
 const T = {
   en: {
@@ -265,7 +255,6 @@ const T = {
    HELPERS
    ═══════════════════════════════════════════════════════════════ */
 
-/** Show a single screen, hide all others */
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => {
     s.classList.remove('active');
@@ -278,10 +267,9 @@ function showScreen(id) {
     el.style.display = 'flex';
     el.classList.add('active');
   }
-  // header visible only on authenticated app screens
   const appScreens = [
     'screen-home','screen-exercises','screen-current',
-    'screen-programs','screen-program-detail'
+    'screen-programs','screen-program-detail','screen-admin'
   ];
   const header = document.getElementById('app-header');
   if (appScreens.includes(id)) {
@@ -293,7 +281,6 @@ function showScreen(id) {
   }
 }
 
-/** Show a temporary toast message */
 function showToast(msg, duration = 2800) {
   const toast = document.getElementById('toast');
   toast.textContent = msg;
@@ -305,12 +292,10 @@ function showToast(msg, duration = 2800) {
   }, duration);
 }
 
-/** Generate a random 4-digit code (string) */
 function makeCode() {
   return String(Math.floor(1000 + Math.random() * 9000));
 }
 
-/** Update the current-program badge count everywhere */
 function updateBadges() {
   const n = state.currentSession.length;
   document.querySelectorAll('.badge').forEach(b => {
@@ -321,25 +306,18 @@ function updateBadges() {
     `${n} exercise${n !== 1 ? 's' : ''} selected this session. Adjust parameters below.`;
 }
 
-/** Open or close a modal */
 function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-/** Format expiry date from ISO string */
 function fmtDate(iso) {
   return iso ? new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : '';
 }
 
-/** Find an exercise in the working library (built-in + custom) by id */
 function getExercise(id) {
   return state.exerciseLibrary.find(e => e.id === id) || null;
 }
 
-/** Upload a patient photo/video to the hep-media bucket and return its public URL.
- *  Path: hep-media/{company_id}/{clinician_id}/{exerciseId}_{kind}_{timestamp}.{ext}
- *  Replaces the old base64-in-jsonb approach, which would bloat rows and
- *  hit payload-size limits fast once a few programs had photos/videos. */
-async function uploadPatientMedia(file, exerciseId, kind /* 'photo' | 'video' */) {
+async function uploadPatientMedia(file, exerciseId, kind) {
   const ext  = (file.name.split('.').pop() || (kind === 'photo' ? 'jpg' : 'mp4')).toLowerCase();
   const path = `${state.companyId}/${state.user.id}/${exerciseId}_${kind}_${Date.now()}.${ext}`;
 
@@ -437,7 +415,6 @@ async function handleSetNewPassword() {
     return;
   }
 
-  // Password is set — now log them into the app properly.
   const { data: { session } } = await db.auth.getSession();
   state.user = session.user;
   await onLoginSuccess();
@@ -464,8 +441,6 @@ async function onLoginSuccess() {
   showScreen('screen-home');
 }
 
-/** Show/hide admin-only UI (Add exercise button, Admin nav item)
- *  based on state.isAdmin, set during loadCompanyContext(). */
 function applyAdminVisibility() {
   document.querySelectorAll('.admin-only').forEach(el => {
     el.classList.toggle('hidden', !state.isAdmin);
@@ -474,21 +449,36 @@ function applyAdminVisibility() {
 
 /* ═══════════════════════════════════════════════════════════════
    NAV
+   FIX: openNav removes inert so elements inside become interactive.
+        closeNav moves focus to the menu button first (prevents the
+        aria-hidden/focused-descendant warning that was blocking
+        clicks on the Add Exercise button), then restores inert
+        after the animation completes.
    ═══════════════════════════════════════════════════════════════ */
 
 function openNav() {
   const nav = document.getElementById('side-nav');
   nav.classList.remove('hidden');
-  // trigger animation on next frame
+  nav.removeAttribute('inert');
+  nav.removeAttribute('aria-hidden');
   requestAnimationFrame(() => nav.classList.add('open'));
-  nav.setAttribute('aria-hidden','false');
 }
 
 function closeNav() {
   const nav = document.getElementById('side-nav');
+
+  // Move focus out of the nav before hiding it so no focused element
+  // gets trapped inside aria-hidden — this was the root cause of the
+  // click-blocking bug on the Add Exercise button.
+  const menuBtn = document.getElementById('btn-menu');
+  if (menuBtn) menuBtn.focus();
+
   nav.classList.remove('open');
-  setTimeout(() => nav.classList.add('hidden'), 260);
-  nav.setAttribute('aria-hidden','true');
+  setTimeout(() => {
+    nav.classList.add('hidden');
+    nav.setAttribute('inert', '');
+    nav.setAttribute('aria-hidden', 'true');
+  }, 260);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -525,7 +515,6 @@ function renderExerciseGrid(filter = '') {
       </div>`;
   }).join('');
 
-  // click handlers
   grid.querySelectorAll('.ex-card').forEach(card => {
     card.addEventListener('click', () => onExerciseCardClick(card.dataset.id));
   });
@@ -616,7 +605,6 @@ function renderCurrentProgram() {
         <div class="ex-list-comment">
           <textarea data-id="${s.exerciseId}" placeholder="Add a note or instruction for this exercise (optional)…" rows="2">${s.comment || ''}</textarea>
         </div>
-        <!-- patient-specific photo/video upload -->
         <div style="padding:0 14px 12px;display:flex;gap:8px;flex-wrap:wrap;">
           <label style="font-size:12px;color:var(--text-muted);cursor:pointer;">
             📷 Patient photo
@@ -632,7 +620,6 @@ function renderCurrentProgram() {
       </div>`;
   }).join('');
 
-  // remove buttons
   list.querySelectorAll('.ex-list-remove').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
@@ -640,7 +627,6 @@ function renderCurrentProgram() {
     });
   });
 
-  // dropdown changes
   list.querySelectorAll('.param-select').forEach(sel => {
     sel.addEventListener('change', () => {
       const item = state.currentSession.find(s => s.exerciseId === sel.dataset.id);
@@ -648,7 +634,6 @@ function renderCurrentProgram() {
     });
   });
 
-  // comment boxes
   list.querySelectorAll('textarea').forEach(ta => {
     ta.addEventListener('input', () => {
       const item = state.currentSession.find(s => s.exerciseId === ta.dataset.id);
@@ -656,7 +641,6 @@ function renderCurrentProgram() {
     });
   });
 
-  // patient photo upload
   list.querySelectorAll('.pt-photo-input').forEach(inp => {
     inp.addEventListener('change', async () => {
       if (!inp.files[0]) return;
@@ -668,7 +652,6 @@ function renderCurrentProgram() {
     });
   });
 
-  // patient video upload
   list.querySelectorAll('.pt-video-input').forEach(inp => {
     inp.addEventListener('change', async () => {
       if (!inp.files[0]) return;
@@ -680,7 +663,6 @@ function renderCurrentProgram() {
     });
   });
 
-  // drag-and-drop reorder (SortableJS)
   if (window.Sortable) {
     Sortable.create(list, {
       handle: '.drag-handle',
@@ -724,9 +706,8 @@ async function sendCurrentProgram() {
   }
   const name  = document.getElementById('current-program-name').value.trim();
   const code  = makeCode();
-  const expiry = new Date(Date.now() + 56 * 24 * 60 * 60 * 1000).toISOString(); // 8 weeks
+  const expiry = new Date(Date.now() + 56 * 24 * 60 * 60 * 1000).toISOString();
 
-  // Build program payload
   const payload = {
     company_id:   state.companyId,
     clinician_id: state.user.id,
@@ -742,12 +723,10 @@ async function sendCurrentProgram() {
   const { data, error } = await db.from('hep_programs').insert([payload]).select().single();
   if (error) { showToast('Error saving program — try again'); console.error(error); return; }
 
-  // Send SMS via edge function (Stephen will wire this up)
   const link = `${window.location.origin}?code=${code}`;
   const msg  = `Your exercise program is ready and available! Tap here ${link} and enter code: ${code}`;
   await db.functions.invoke('send-sms', { body: { phone: `+1${phone}`, message: msg } });
 
-  // Reset session
   closeModal('phone-modal');
   state.currentSession = [];
   document.getElementById('current-program-name').value = '';
@@ -771,7 +750,6 @@ async function loadPrograms() {
 
   if (error) { console.error(error); return; }
 
-  // filter out expired programs
   const now = Date.now();
   state.programs = (data || []).filter(p => new Date(p.expiry).getTime() > now);
   renderProgramsList();
@@ -798,12 +776,10 @@ function renderProgramsList() {
       <span class="program-item-arrow">›</span>
     </div>`).join('');
 
-  // click → detail
   list.querySelectorAll('.program-item').forEach(item => {
     item.addEventListener('click', () => openProgramDetail(item.dataset.id));
   });
 
-  // long-press → rename
   list.querySelectorAll('.program-item-name').forEach(nameEl => {
     let pressTimer;
     nameEl.addEventListener('pointerdown', () => {
@@ -870,7 +846,6 @@ function openProgramDetail(programId) {
       </div>`;
   }).join('');
 
-  // drag-and-drop reorder on saved program
   if (window.Sortable) {
     Sortable.create(list, {
       animation: 150,
@@ -919,8 +894,6 @@ async function confirmResend() {
   showToast(`Code ${code} resent!`);
 }
 
-/* ─── Add exercise to a previous (saved) program ─────────────── */
-
 function showPreviousProgramPicker() {
   const listEl = document.getElementById('prev-program-list');
   if (state.programs.length === 0) {
@@ -943,7 +916,6 @@ async function addToPreviousProgram(programId) {
   const prog = state.programs.find(p => p.id === programId);
   if (!prog || !state.pendingExId) return;
 
-  // avoid duplicates
   if ((prog.exercises || []).some(s => s.exerciseId === state.pendingExId)) {
     showToast('Already in that program');
     closeModal('prev-picker-overlay');
@@ -968,21 +940,6 @@ async function addToPreviousProgram(programId) {
    PATIENT VIEW
    ═══════════════════════════════════════════════════════════════ */
 
-/** Called on page load — checks for ?code= in URL */
-async function checkPatientURL() {
-  const params = new URLSearchParams(window.location.search);
-  const code   = params.get('code');
-  if (code) {
-    // Skip clinician login and go straight to patient entry
-    showScreen('screen-patient-entry');
-    // pre-fill the code digits if 4 chars
-    if (code.length === 4) {
-      const inputs = document.querySelectorAll('.code-digit');
-      code.split('').forEach((d, i) => { if (inputs[i]) inputs[i].value = d; });
-    }
-  }
-}
-
 async function submitPatientCode() {
   const digits = [...document.querySelectorAll('.code-digit')].map(i => i.value).join('');
   const errEl  = document.getElementById('patient-error');
@@ -994,7 +951,6 @@ async function submitPatientCode() {
     return;
   }
 
-  // Look up the code in hep_programs
   const { data, error } = await db
     .from('hep_programs')
     .select('*')
@@ -1007,7 +963,6 @@ async function submitPatientCode() {
     return;
   }
 
-  // Check expiry
   if (new Date(data.expiry).getTime() < Date.now()) {
     errEl.textContent = 'This program has expired. Contact your provider for a new link.';
     errEl.classList.remove('hidden');
@@ -1021,7 +976,6 @@ async function submitPatientCode() {
 }
 
 function loadCompletedToday() {
-  // store in localStorage keyed by program id + today's date
   const key = `selko_done_${state.patientProgram?.id}_${new Date().toDateString()}`;
   try {
     const saved = localStorage.getItem(key);
@@ -1033,12 +987,10 @@ function saveCompletedToday() {
   const key = `selko_done_${state.patientProgram?.id}_${new Date().toDateString()}`;
   try { localStorage.setItem(key, JSON.stringify(state.completedToday)); } catch {}
 
-  // check if all exercises done today → increment compliance_days on DB
   const prog = state.patientProgram;
   if (!prog) return;
   const allDone = (prog.exercises || []).every(s => state.completedToday[s.exerciseId]);
   if (allDone) {
-    // Only credit once per calendar day — check flag
     const creditKey = `selko_credited_${prog.id}_${new Date().toDateString()}`;
     if (!localStorage.getItem(creditKey)) {
       localStorage.setItem(creditKey, '1');
@@ -1084,13 +1036,11 @@ function openPatientExercise(exId) {
 
   document.getElementById('pt-ex-name').textContent = ex.name;
 
-  // image — prefer patient-specific photo, fall back to stock
   const imgEl = document.getElementById('pt-ex-img');
   const src   = sessionItem.patientPhoto || ex.image || '';
   if (src) { imgEl.src = src; imgEl.alt = ex.name; imgEl.classList.remove('hidden'); }
   else { imgEl.classList.add('hidden'); }
 
-  // video
   const videoWrap = document.getElementById('pt-ex-video-wrap');
   const videoEl   = document.getElementById('pt-ex-video');
   if (sessionItem.patientVideo) {
@@ -1101,19 +1051,14 @@ function openPatientExercise(exId) {
     videoEl.src = '';
   }
 
-  // params
   const params = [sessionItem.sets, sessionItem.reps, sessionItem.freq].filter(Boolean).join(' · ');
   document.getElementById('pt-params').textContent = params || '';
   document.getElementById('pt-params').style.display = params ? 'block' : 'none';
 
-  // stock instructions (from the exercise library, how to actually perform it)
   document.getElementById('pt-instructions').textContent = ex.instructions || '';
-
-  // comment
   document.getElementById('pt-comments').textContent = sessionItem.comment || '';
 
-  // complete button state
-  const done       = !!state.completedToday[exId];
+  const done        = !!state.completedToday[exId];
   const btnComplete = document.getElementById('btn-complete');
   const doneLine    = document.getElementById('complete-done');
   const t = T[state.lang];
@@ -1134,30 +1079,23 @@ function openPatientExercise(exId) {
 function markExerciseDone(exId) {
   state.completedToday[exId] = true;
   saveCompletedToday();
-  // update UI
   const t = T[state.lang];
   document.getElementById('btn-complete').classList.add('hidden');
   const doneLine = document.getElementById('complete-done');
   doneLine.textContent = t.completed;
   doneLine.classList.remove('hidden');
-  // update grid card
   const card = document.querySelector(`#patient-exercise-grid .ex-card[data-id="${exId}"]`);
   if (card) card.classList.add('done');
 }
 
-/* ── Language toggle ──────────────────────────────────────────── */
 function applyLang(lang) {
   state.lang = lang;
   const t = T[lang];
-
-  // patient screens
   document.getElementById('pt-welcome-title').textContent    = t.welcome;
   document.getElementById('pt-welcome-sub').textContent      = t.programReady;
   document.getElementById('btn-patient-view-program').textContent = t.viewProgram;
   document.querySelectorAll('.patient-footer').forEach(el => el.textContent = t.footer);
   document.getElementById('pt-list-title').textContent       = t.myExercises;
-
-  // complete button if on exercise screen
   const btnComplete = document.getElementById('btn-complete');
   if (btnComplete && !btnComplete.classList.contains('hidden')) {
     btnComplete.textContent = t.markDone;
@@ -1166,19 +1104,16 @@ function applyLang(lang) {
   if (doneLine && !doneLine.classList.contains('hidden')) {
     doneLine.textContent = t.completed;
   }
-
-  // active state on toggle buttons
   document.querySelectorAll('.lang-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.lang === lang);
   });
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   BOOT — initialise everything on DOM ready
+   BOOT
    ═══════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', async () => {
 
-  /* ── Check if this is a patient link first ─────────────────── */
   const params = new URLSearchParams(window.location.search);
   const isRecovery = params.get('reset') === 'true' || window.location.hash.includes('type=recovery');
 
@@ -1190,14 +1125,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       code.split('').forEach((d, i) => { if (inputs[i]) inputs[i].value = d; });
     }
   } else if (isRecovery) {
-    /* Recovery link clicked — Supabase already created a temporary
-       session, but the user must set a real password before reaching
-       the app. onAuthStateChange's PASSWORD_RECOVERY handler also
-       covers this, but we check here too in case that event already
-       fired before this listener was attached. */
     showScreen('screen-new-password');
   } else {
-    /* ── Check existing Supabase session ───────────────────────── */
     const { data: { session } } = await db.auth.getSession();
     if (session?.user) {
       state.user = session.user;
@@ -1207,7 +1136,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  /* ─── AUTH listeners ──────────────────────────────────────── */
+  /* ─── AUTH ────────────────────────────────────────────────── */
   document.getElementById('btn-login').addEventListener('click', handleLogin);
   document.getElementById('login-password').addEventListener('keydown', e => {
     if (e.key === 'Enter') handleLogin();
@@ -1218,7 +1147,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-set-new-password').addEventListener('click', handleSetNewPassword);
   document.getElementById('btn-logout').addEventListener('click', handleLogout);
 
-  /* ─── Add exercise modal ─────────────────────────────────── */
+  /* ─── ADD EXERCISE MODAL ──────────────────────────────────── */
   document.getElementById('btn-open-add-exercise').addEventListener('click', () => {
     document.getElementById('add-exercise-msg').classList.add('hidden');
     document.getElementById('add-exercise-modal').classList.remove('hidden');
@@ -1240,17 +1169,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     btn.addEventListener('click', () => {
       closeNav();
       const target = btn.dataset.screen;
-      if (target === 'screen-exercises') {
-        renderExerciseGrid();
-        updateBadges();
-      }
-      if (target === 'screen-programs') loadPrograms();
-      if (target === 'screen-admin') renderAdminExerciseList();
+      if (target === 'screen-exercises') { renderExerciseGrid(); updateBadges(); }
+      if (target === 'screen-programs')  loadPrograms();
+      if (target === 'screen-admin')     renderAdminExerciseList();
       showScreen(target);
     });
   });
 
-  // Quick-action cards on home screen
   document.querySelectorAll('.quick-card[data-screen]').forEach(card => {
     card.addEventListener('click', () => {
       const target = card.dataset.screen;
@@ -1284,9 +1209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     state.pendingExId = null;
   });
 
-  document.getElementById('btn-add-previous').addEventListener('click', () => {
-    showPreviousProgramPicker();
-  });
+  document.getElementById('btn-add-previous').addEventListener('click', showPreviousProgramPicker);
 
   document.getElementById('exercise-popup').addEventListener('click', e => {
     if (e.target === document.getElementById('exercise-popup')) {
@@ -1300,66 +1223,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     state.pendingExId = null;
   });
 
-  /* ─── CURRENT PROGRAM BUTTONS ─────────────────────────────── */
+  /* ─── CURRENT PROGRAM ─────────────────────────────────────── */
   document.getElementById('btn-view-current-home').addEventListener('click', () => {
-    renderCurrentProgram();
-    showScreen('screen-current');
+    renderCurrentProgram(); showScreen('screen-current');
   });
   document.getElementById('btn-view-current-ex').addEventListener('click', () => {
-    renderCurrentProgram();
-    showScreen('screen-current');
+    renderCurrentProgram(); showScreen('screen-current');
   });
-
   document.getElementById('btn-back-from-current').addEventListener('click', () => {
-    renderExerciseGrid(searchInput.value);
-    showScreen('screen-exercises');
+    renderExerciseGrid(searchInput.value); showScreen('screen-exercises');
   });
-
   document.getElementById('btn-send-current').addEventListener('click', initiateSendCurrent);
-
-  // few-exercises modal
   document.getElementById('btn-few-yes').addEventListener('click', () => {
-    closeModal('few-ex-modal');
-    openModal('phone-modal');
+    closeModal('few-ex-modal'); openModal('phone-modal');
   });
   document.getElementById('btn-few-no').addEventListener('click', () => closeModal('few-ex-modal'));
-
-  // phone modal
   document.getElementById('btn-confirm-send').addEventListener('click', sendCurrentProgram);
   document.getElementById('btn-cancel-send').addEventListener('click', () => closeModal('phone-modal'));
 
   /* ─── MY PROGRAMS ─────────────────────────────────────────── */
-  document.getElementById('btn-back-from-detail').addEventListener('click', () => {
-    showScreen('screen-programs');
-  });
-
+  document.getElementById('btn-back-from-detail').addEventListener('click', () => showScreen('screen-programs'));
   document.getElementById('btn-send-saved').addEventListener('click', sendSavedProgram);
   document.getElementById('btn-resend-code').addEventListener('click', resendCode);
   document.getElementById('btn-delete-program').addEventListener('click', () => openModal('delete-modal'));
   document.getElementById('btn-confirm-delete').addEventListener('click', deleteProgramConfirmed);
   document.getElementById('btn-cancel-delete').addEventListener('click', () => closeModal('delete-modal'));
-
-  // resend modal
   document.getElementById('btn-confirm-resend').addEventListener('click', confirmResend);
   document.getElementById('btn-cancel-resend').addEventListener('click', () => closeModal('resend-modal'));
-
-  // When "Send to patient" is clicked from saved program detail, reuse phone modal
-  document.getElementById('btn-confirm-send').addEventListener('click', async () => {
-    // If we're in the detail view (not current build), send from active program
-    if (
-      document.getElementById('screen-program-detail').classList.contains('active') &&
-      state.activeProgram
-    ) {
-      const phone = document.getElementById('patient-phone').value.replace(/\D/g,'');
-      if (phone.length < 10) { showToast('Enter a valid phone number'); return; }
-      const code = state.activeProgram.code;
-      const link = `${window.location.origin}?code=${code}`;
-      const msg  = `Your exercise program is ready and available! Tap here ${link} and enter code: ${code}`;
-      await db.functions.invoke('send-sms', { body: { phone: `+1${phone}`, message: msg } });
-      closeModal('phone-modal');
-      showToast(`Program sent! Code: ${code}`);
-    }
-  });
 
   /* ─── PATIENT VIEW ────────────────────────────────────────── */
   document.getElementById('btn-patient-submit').addEventListener('click', submitPatientCode);
@@ -1368,7 +1258,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     inp.addEventListener('input', () => {
       inp.value = inp.value.replace(/\D/,'').slice(-1);
       if (inp.value && all[i + 1]) all[i + 1].focus();
-      // auto-submit when last digit entered
       if (i === 3 && inp.value) submitPatientCode();
     });
     inp.addEventListener('keydown', e => {
@@ -1377,17 +1266,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   document.getElementById('btn-patient-view-program').addEventListener('click', () => {
-    renderPatientExerciseGrid();
-    showScreen('screen-patient-list');
+    renderPatientExerciseGrid(); showScreen('screen-patient-list');
   });
-
-  document.getElementById('btn-patient-back-home').addEventListener('click', () => {
-    showScreen('screen-patient-home');
-  });
-
+  document.getElementById('btn-patient-back-home').addEventListener('click', () => showScreen('screen-patient-home'));
   document.getElementById('btn-patient-back-list').addEventListener('click', () => {
-    renderPatientExerciseGrid(); // refresh completion states
-    showScreen('screen-patient-list');
+    renderPatientExerciseGrid(); showScreen('screen-patient-list');
   });
 
   /* ─── LANGUAGE TOGGLE ─────────────────────────────────────── */
@@ -1395,7 +1278,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     btn.addEventListener('click', () => applyLang(btn.dataset.lang));
   });
 
-  /* ─── Supabase auth state changes ────────────────────────── */
+  /* ─── SUPABASE AUTH STATE ─────────────────────────────────── */
   db.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_OUT') {
       state.user = null;
