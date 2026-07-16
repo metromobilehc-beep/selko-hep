@@ -1,221 +1,43 @@
-# Selko HEP — Integration & Debug Log (handoff for Evan)
+Selko HEP Builder — Changes Summary
+Three files updated today — replace all three in GitHub:
 
-This covers everything done to take Evan's original HEP builder (standalone
-app with placeholder Supabase config) and get it running live at
-`hep.selko360.com` inside the shared Selko multi-tenant Supabase project.
-
-## Repo state
-- `metromobilehc-beep/selko-hep` on GitHub, deployed to Vercel, domain
-  `hep.selko360.com` connected via CNAME in Namecheap.
-- Files: `index.html`, `selko-hep-app.js`, `selko-hep-data.js`,
-  `selko-hep-styles.css`, `images/` (28 exercise photos — originally
-  uploaded nested inside `images_1/images` and `images_2/images` from two
-  separate zips; flattened into one top-level `images/` folder since the
-  code expects flat paths like `images/ex_0001_....png`).
-
-## What changed from Evan's original code
-
-### 1. Multi-tenancy (biggest structural change)
-Original code had **no `company_id` anywhere** — every clinician who
-logged in would've seen every program from every company. Selko's
-existing modules (Cred, Comply, Billing) all isolate data by `company_id`
-via a shared `profiles` table and a `get_my_company_id()` SQL helper.
-HEP now follows the same pattern:
-
-- New `loadCompanyContext()` function (runs right after login): looks up
-  `company_id` from `profiles`, then checks `companies.has_hep`. If
-  `has_hep` isn't `true` for that company, the user is logged back out
-  with a message instead of silently seeing wrong/no data.
-- `company_id` is now included on every `hep_programs` insert (required
-  by the RLS `WITH CHECK` policy — inserts fail without it).
-
-**DB migration run (in Supabase SQL editor, `selko-prod` project,**
-**`zxserlkhwkfoqiepurdr.supabase.co`):**
-```sql
-CREATE TABLE hep_programs (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  company_id uuid NOT NULL REFERENCES companies(id),
-  clinician_id uuid NOT NULL REFERENCES auth.users(id),
-  name text NOT NULL,
-  exercises jsonb NOT NULL DEFAULT '[]'::jsonb,
-  code text NOT NULL,
-  phone text NOT NULL,
-  expiry timestamptz NOT NULL,
-  compliance_days integer NOT NULL DEFAULT 0,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
--- RLS enabled, policies scope select/insert/update/delete to
--- company_id = get_my_company_id() for authenticated clinicians,
--- plus separate anon policies so patients (who only have a 4-digit
--- code, no login) can read/update their own program by code.
-```
-Metro's `company_id`: `b00ca9bc-d669-492d-8ad5-2d2783321ade`
-`companies.has_hep` is now `true` for Metro.
-
-Note: the original code's header comment mentioned `hep_exercises`,
-`hep_patients`, `hep_shares` tables — those were never actually used
-anywhere in the code (it only ever reads/writes `hep_programs`), so they
-were dropped from the plan rather than built for nothing. If a real need
-for separate patient records or a shares-mapping table comes up later,
-that's a genuine schema addition, not something we're missing today.
-
-### 2. Patient photo/video storage
-Original code stored patient photos/videos as **base64 data URLs**
-directly inside the `exercises` jsonb column. That bloats rows fast and
-isn't how any other Selko module handles file uploads.
-
-Replaced with a real Supabase Storage bucket: `hep-media` (public-read,
-authenticated-write, folder-scoped by `company_id` so one company can't
-write into another's folder). New `uploadPatientMedia()` function
-uploads the file and stores just the public URL string in the jsonb
-column instead of the raw base64.
-
-Path convention: `hep-media/{company_id}/{clinician_id}/{exerciseId}_{photo|video}_{timestamp}.{ext}`
-
-### 3. Login / session bugs found and fixed live
-Several real bugs surfaced only once this was actually running against
-real Supabase + real DNS + a real deploy — worth flagging clearly since
-they're bugs in the original logic, not integration artifacts:
-
-- **`onLoginSuccess()` wasn't awaited** on session restore (page
-  refresh with an existing session) — fixed by awaiting it properly so
-  `loadCompanyContext()` finishes before the app tries to render.
-- **`showScreen()` never removed the baked-in `hidden` class.** Every
-  authenticated screen (`screen-home`, `screen-programs`, etc.) starts
-  with `class="screen app-screen hidden"` in the HTML, and the CSS
-  defines `.hidden { display: none !important; }`. The old
-  `showScreen()` only toggled the `active` class and set an inline
-  `display` style — but `!important` always beats an inline style, so
-  every authenticated screen stayed permanently invisible. This is why
-  login "worked" (auth succeeded, no console errors) but the screen
-  below the header was blank. Fixed by having `showScreen()` explicitly
-  add/remove the `hidden` class on top of the `active` class.
-- **Password recovery had no actual "set new password" step.**
-  Supabase's `resetPasswordForEmail()` + clicking the emailed link logs
-  the person into a temporary session automatically (normal Supabase
-  behavior) — but the original `PASSWORD_RECOVERY` auth-state handler
-  was empty (`// Handled by redirectTo in handleForgotPassword`, but
-  nothing actually handled it). That meant anyone who clicked a reset
-  link got dropped straight into the live app without ever being
-  prompted to set a new password — a real access-control gap, not just
-  a UX miss. Fixed by:
-  - Adding a real `screen-new-password` screen (email/new
-    password/confirm password fields)
-  - Detecting the recovery redirect (`?reset=true` in the URL, or
-    `type=recovery` in the hash) at page load and routing to that
-    screen instead of falling through to the normal auto-login check
-  - Wiring the `PASSWORD_RECOVERY` auth event to also show that screen
-    (belt-and-suspenders in case the event fires before the URL check)
-  - New `handleSetNewPassword()` calls `db.auth.updateUser({ password })`
-    and only then logs the user into the app for real
-
-### 4. Config
-- `SUPABASE_URL` filled in with the real `selko-prod` project URL.
-- `SUPABASE_ANON` — **still needs the real key pasted in from Supabase →
-  Project Settings → API.** This has been the placeholder value more
-  than once during this process (each time I regenerate the full file
-  from my working copy, it resets to the placeholder — if you're
-  re-pulling files from me, always re-check/re-paste this line before
-  pushing).
-- Required CDN scripts added to `index.html` (were missing entirely):
-  Supabase JS v2 (`@supabase/supabase-js@2`) and SortableJS.
-- The `selko-icon.png` logo file doesn't exist — rather than invent a
-  logo, the broken `<img>` tags were just removed; the "selko" text
-  wordmark next to each one still shows fine on its own. If you get a
-  real icon file later, it can be dropped back in.
-
-### 5. Custom exercises (admin/super-admin only)
-Added a full feature for adding exercises through the UI instead of
-editing `selko-hep-data.js` by hand:
-
-- New `hep_custom_exercises` table (`company_id`-scoped, same RLS
-  pattern as everything else) — see
-  `002_custom_exercises_migration.sql`.
-- SELECT is open to any clinician at the company (everyone needs to
-  see/use custom exercises when building a program). INSERT/UPDATE/
-  DELETE are restricted to `role = 'admin'` OR `is_super_admin = true`
-  — enforced at the RLS level, not just hidden in the UI, so it can't
-  be bypassed by calling the API directly.
-- On login, `loadCompanyContext()` now also pulls `role` and
-  `is_super_admin` from `profiles` and sets `state.isAdmin`.
-  `applyAdminVisibility()` toggles every `.admin-only` element based on
-  that flag.
-- Built-in `EXERCISE_LIBRARY` (static, in `selko-hep-data.js`) and the
-  company's custom rows get merged at runtime into
-  `state.exerciseLibrary` — `getExercise()` and `renderExerciseGrid()`
-  both read from that merged array now instead of `EXERCISE_LIBRARY`
-  directly, so search/grid/program-builder/patient-view all just work
-  without knowing which source an exercise came from.
-- UI additions:
-  - "➕ Add new exercise" button on the Exercises screen — `admin-only`,
-    hidden for regular clinicians
-  - New "⚙️ Admin" nav item (`admin-only`) → `screen-admin`, a list of
-    the company's custom exercises with a delete button on each, plus
-    its own "Add new exercise" entry point (opens the same modal)
-  - Add-exercise modal: name, instructions, optional comma-separated
-    keywords, optional photo (uploads to the same `hep-media` bucket,
-    under `{company_id}/exercise-library/...`)
-- Since you and Stephen both already have `is_super_admin = true` on
-  your Metro `profiles` row (set up during the original Cred fix),
-  no extra database change was needed for either of you to see the
-  Admin option once this ships.
-
-### 6. Exercise instructions filled in
-All 26 built-in exercises had `instructions: ''` — filled in with
-patient-facing, step-by-step text (written for someone doing this at
-home with no clinician present) directly in `selko-hep-data.js`. These
-now display in two places that previously didn't show them at all:
-the program-builder card (above the clinician's own optional note) and
-the patient's individual exercise screen (`#pt-instructions`, above
-`#pt-comments`). The commented-out `ex_0027` template placeholder at
-the bottom of the file correctly still has empty instructions since
-it's not a real exercise.
+selko-hep-styles.css
+index.html
+selko-hep-app.js
 
 
-## Operational note — pushing file updates
-Ran into repeated cases today where uploading `index.html` or
-`selko-hep-app.js` as files to GitHub silently didn't take (GitHub's
-file-list timestamp updated but the actual content stayed old — most
-likely stale copies sitting in a Downloads folder from earlier
-re-shares getting uploaded by mistake). **Copy-pasting the full file
-content directly into GitHub's web editor worked reliably every time
-file upload didn't.** If a push ever seems to have "no effect" on the
-live site again, checking the actual file content on GitHub (Ctrl+F
-for a phrase you know should be new) before touching Vercel/DNS/cache
-will save a lot of time chasing the wrong layer.
+Change 1 — Selko brand colors (selko-hep-styles.css)
+Replaced the Metro Mobile warm palette (teal-to-orange) with the Selko brand palette extracted directly from the logo:
 
-## Known gaps / not yet built
+Header gradient: #003886 (navy) → #0a7aaf (mid blue) → #23c3bd (teal), left to right
+Primary buttons, headings, focus rings: Selko navy #003886
+Badges and accents: Selko teal #23c3bd
+Compliance badges: #05aca8
+Secondary buttons: teal-bg with navy text
+Float bar height increased to accommodate two buttons
+Small screen breakpoint stacks float bar buttons vertically
 
-- **`send-sms` Supabase Edge Function doesn't exist.** The code calls it
-  when a clinician sends a program to a patient, but there's no
-  function deployed and no SMS provider (Twilio or similar) wired in
-  yet. Programs save fine; the "text the patient" step will silently
-  fail until this is built.
-- **4-digit patient code is the only credential**, no rate limiting —
-  fine for the UX (easy for patients to type on a phone) but worth
-  knowing it's not a strong secret if this ever needs to be hardened.
-- **Compliance streak tracking is `localStorage`-only** on the
-  patient's device — works for same-device return visits, resets on a
-  new device or cleared browser data. Fixing this properly means adding
-  real patient identity, which is a bigger design conversation.
-- **`hep_exercises` (a table mirroring the full built-in library) still
-  isn't a thing** — the 26 built-in exercises stay a static
-  `EXERCISE_LIBRARY` array in `selko-hep-data.js`, shared across all
-  companies, edited by hand in code. Company-specific additions now
-  go through the real `hep_custom_exercises` table (see section 5
-  above) — that gap is filled. What's still true: there's no way to
-  edit or delete one of the *original 26* through the UI, only ones
-  added via the Admin screen.
 
-## Reference — Selko multi-tenant pattern (for building anything else)
-- Project: `selko-prod` — `https://zxserlkhwkfoqiepurdr.supabase.co`
-- Every table: `company_id uuid NOT NULL REFERENCES companies(id)`, RLS
-  enabled, policies scoped through `get_my_company_id()` (reads
-  `company_id` off the `profiles` table for `auth.uid()`)
-- `companies` table: one row per client, `has_[module]` feature flags
-  gate access per module
-- `profiles` table: `id` = `auth.uid()`, plus `company_id`, `role`,
-  `email`, `full_name`, `is_super_admin`
-- New users: created directly in Supabase Auth dashboard (Authentication
-  → Users → Create new user, uncheck "send invite"), then a matching
-  `profiles` row inserted manually or via each module's invite flow
+Change 2 — Save program without sending (index.html + selko-hep-app.js)
+The float bar on the Exercises screen now has two buttons side by side:
+
+View (navy) — opens current program screen as before
+💾 Save program (white/navy outline) — new button
+
+Tapping Save opens a modal prompting for a program name. On confirm:
+
+Inserts to hep_programs with a generated code but empty phone (no SMS sent)
+Session clears, badge resets to 0
+Clinician stays on Exercises screen
+Toast confirms save
+Program appears in My Programs and can be sent to a patient later via the existing Send flow
+
+Supabase change required for this to work:
+Stephen needs to run this in the SQL editor on selko-prod if not already done:
+sqlALTER TABLE hep_programs ALTER COLUMN phone DROP NOT NULL;
+This allows programs to be saved without a phone number until the clinician is ready to send.
+
+Change 3 — Remove from current program (index.html + selko-hep-app.js)
+Already deployed in the previous session but included in these files. When a clinician taps an exercise card that is already in the current session, the popup now shows "Remove from current program" in red instead of "Add to current program." This allows deselection without leaving the exercises screen.
+
+No other backend changes needed beyond the SQL above.
