@@ -227,21 +227,16 @@ async function handleSendInvite() {
       },
     });
 
-    if (error || data?.error) {
-      throw new Error(error?.message || data?.error || 'Unknown error');
-    }
+    if (error || data?.error) throw new Error(error?.message || data?.error || 'Unknown error');
 
-    // Success
     msgEl.textContent = `Invite sent to ${email}! They'll receive an email with a link to set up their account.`;
     msgEl.className = 'alert alert-success';
     msgEl.classList.remove('hidden');
     nameEl.value  = '';
     emailEl.value = '';
 
-    // Refresh user list in background
     loadAndRenderUserList();
 
-    // Auto-close after 3 seconds
     setTimeout(() => {
       document.getElementById('invite-user-modal').classList.add('hidden');
     }, 3000);
@@ -473,8 +468,7 @@ function applyAdminVisibility() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   NAV — fixed: inert managed on open/close to prevent
-   aria-hidden/focus conflict that was blocking button clicks
+   NAV
    ═══════════════════════════════════════════════════════════════ */
 function openNav() {
   const nav = document.getElementById('side-nav');
@@ -524,10 +518,27 @@ function renderExerciseGrid(filter = '') {
   });
 }
 
+/* ─── Exercise card click — FIX: shows remove button when exercise
+       is already in the current session so clinicians can deselect
+       without leaving the exercises screen ──────────────────────── */
 function onExerciseCardClick(exId) {
   state.pendingExId = exId;
   const ex = getExercise(exId);
   document.getElementById('popup-ex-name').textContent = ex ? ex.name : '';
+
+  // Toggle add vs remove based on whether it's already in the session
+  const inSession  = state.currentSession.some(s => s.exerciseId === exId);
+  const addBtn     = document.getElementById('btn-add-current');
+  const removeBtn  = document.getElementById('btn-remove-from-current');
+
+  if (inSession) {
+    addBtn.classList.add('hidden');
+    removeBtn.classList.remove('hidden');
+  } else {
+    addBtn.classList.remove('hidden');
+    removeBtn.classList.add('hidden');
+  }
+
   openModal('exercise-popup');
 }
 
@@ -959,7 +970,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-cancel-invite').addEventListener('click', () => {
     document.getElementById('invite-user-modal').classList.add('hidden');
   });
-  // Allow Enter key in email field to submit
   document.getElementById('invite-email').addEventListener('keydown', e => {
     if (e.key === 'Enter') handleSendInvite();
   });
@@ -1001,8 +1011,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   /* ─── EXERCISE POPUP ──────────────────────────────────────── */
   document.getElementById('btn-add-current').addEventListener('click', () => {
     if (state.pendingExId) addToCurrentSession(state.pendingExId);
-    closeModal('exercise-popup'); state.pendingExId = null;
+    closeModal('exercise-popup');
+    state.pendingExId = null;
   });
+
+  /* FIX: Remove from current program button */
+  document.getElementById('btn-remove-from-current').addEventListener('click', () => {
+    if (state.pendingExId) removeFromSession(state.pendingExId);
+    closeModal('exercise-popup');
+    state.pendingExId = null;
+    showToast('Exercise removed from current program');
+  });
+
   document.getElementById('btn-add-previous').addEventListener('click', showPreviousProgramPicker);
   document.getElementById('exercise-popup').addEventListener('click', e => {
     if (e.target === document.getElementById('exercise-popup')) { closeModal('exercise-popup'); state.pendingExId = null; }

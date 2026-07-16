@@ -150,21 +150,32 @@
     </button>
     <div class="exercise-grid" id="exercise-grid"></div>
   </div>
+
+  <!-- floating current program button -->
   <div class="float-bar">
     <button class="btn btn-primary btn-full current-program-btn" id="btn-view-current-ex">
       <span>📌 View current program</span>
       <span class="badge" id="badge-ex">0</span>
     </button>
   </div>
-  <!-- Exercise action popup -->
-  <div id="exercise-popup" class="popup-overlay hidden" role="dialog" aria-modal="true" aria-label="Add exercise">
+
+  <!-- Exercise action popup
+       FIX: Added "Remove from current program" button that shows
+       conditionally when the exercise is already in the session.
+       "Add to current program" hides when remove is shown. -->
+  <div id="exercise-popup" class="popup-overlay hidden" role="dialog" aria-modal="true" aria-label="Exercise options">
     <div class="popup-card" id="exercise-popup-card">
       <h3 class="popup-title" id="popup-ex-name"></h3>
       <button class="popup-btn" id="btn-add-current">Add to current program</button>
+      <button class="popup-btn hidden" id="btn-remove-from-current"
+        style="color:var(--orange-red);border-color:var(--danger-border);">
+        Remove from current program
+      </button>
       <button class="popup-btn" id="btn-add-previous">Add to previous program</button>
       <p class="popup-hint">Tap anywhere outside to dismiss</p>
     </div>
   </div>
+
   <!-- Add to previous — program picker -->
   <div id="prev-picker-overlay" class="popup-overlay hidden" role="dialog" aria-modal="true" aria-label="Select program">
     <div class="popup-card">
@@ -195,6 +206,7 @@
       <button class="btn btn-primary btn-full" id="btn-send-current">Send to patient</button>
     </div>
   </div>
+
   <!-- < 3 exercises warning -->
   <div id="few-ex-modal" class="modal-overlay hidden" role="dialog">
     <div class="modal-card">
@@ -205,6 +217,7 @@
       </div>
     </div>
   </div>
+
   <!-- Phone entry modal -->
   <div id="phone-modal" class="modal-overlay hidden" role="dialog">
     <div class="modal-card">
@@ -244,7 +257,7 @@
   <div class="screen-body no-float">
     <h2 class="detail-program-name">Admin</h2>
 
-    <!-- ── Add new exercise ── -->
+    <!-- Exercise library section -->
     <p class="screen-hint" style="margin-bottom:10px;">Exercise library</p>
     <button class="btn btn-primary btn-full" id="btn-open-add-exercise-admin" style="margin-bottom:18px;">
       ＋ Add new exercise
@@ -255,16 +268,13 @@
       <p>No custom exercises added yet.</p>
     </div>
 
-    <!-- ── Divider ── -->
     <hr style="border:none;border-top:1px solid var(--border);margin-bottom:24px;">
 
-    <!-- ── Add new user ── -->
+    <!-- Clinician accounts section -->
     <p class="screen-hint" style="margin-bottom:10px;">Clinician accounts</p>
     <button class="btn btn-primary btn-full" id="btn-open-invite-user" style="margin-bottom:18px;">
       ＋ Add new user
     </button>
-
-    <!-- Clinician list -->
     <div id="admin-user-list" class="programs-list"></div>
     <div id="admin-user-empty" class="empty-state hidden">
       <div class="empty-icon">👤</div>
@@ -287,6 +297,7 @@
       <button class="btn btn-danger" id="btn-delete-program">🗑 Delete program</button>
     </div>
   </div>
+
   <!-- Delete confirmation -->
   <div id="delete-modal" class="modal-overlay hidden" role="dialog">
     <div class="modal-card">
@@ -297,6 +308,7 @@
       </div>
     </div>
   </div>
+
   <!-- Resend modal -->
   <div id="resend-modal" class="modal-overlay hidden" role="dialog">
     <div class="modal-card">
@@ -314,7 +326,7 @@
 </div>
 
 <!-- ════════════════════════════════════════════════════
-     ADD NEW EXERCISE MODAL (top-level — never inside a screen)
+     ADD NEW EXERCISE MODAL (top-level)
      ════════════════════════════════════════════════════ -->
 <div id="add-exercise-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Add new exercise">
   <div class="modal-card">
@@ -344,7 +356,7 @@
 </div>
 
 <!-- ════════════════════════════════════════════════════
-     INVITE USER MODAL (top-level — never inside a screen)
+     INVITE USER MODAL (top-level)
      ════════════════════════════════════════════════════ -->
 <div id="invite-user-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Add new user">
   <div class="modal-card">
