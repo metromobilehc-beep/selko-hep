@@ -15,9 +15,7 @@
      ════════════════════════════════════════════════════ -->
 <div id="screen-login" class="screen active">
   <div class="login-wrap">
-    <div class="login-logo">
-      <span class="login-wordmark">selko</span>
-    </div>
+    <div class="login-logo"><span class="login-wordmark">selko</span></div>
     <h1 class="login-title">HEP Builder</h1>
     <p class="login-sub">Sign in to your clinician account</p>
     <div id="login-error" class="alert alert-error hidden"></div>
@@ -39,9 +37,7 @@
      ════════════════════════════════════════════════════ -->
 <div id="screen-forgot" class="screen">
   <div class="login-wrap">
-    <div class="login-logo">
-      <span class="login-wordmark">selko</span>
-    </div>
+    <div class="login-logo"><span class="login-wordmark">selko</span></div>
     <h1 class="login-title">Reset password</h1>
     <p class="login-sub">Enter your email and we'll send you a reset link</p>
     <div id="forgot-msg" class="alert hidden"></div>
@@ -59,9 +55,7 @@
      ════════════════════════════════════════════════════ -->
 <div id="screen-new-password" class="screen">
   <div class="login-wrap">
-    <div class="login-logo">
-      <span class="login-wordmark">selko</span>
-    </div>
+    <div class="login-logo"><span class="login-wordmark">selko</span></div>
     <h1 class="login-title">Set a new password</h1>
     <p class="login-sub">Choose a new password for your account</p>
     <div id="new-password-msg" class="alert hidden"></div>
@@ -91,8 +85,7 @@
   </div>
 </header>
 
-<!-- Side-drawer nav — inert when closed so nothing inside
-     can intercept clicks on elements behind it -->
+<!-- Side-drawer nav — inert when closed -->
 <nav id="side-nav" class="side-nav hidden" inert aria-hidden="true">
   <div class="nav-overlay" id="nav-overlay"></div>
   <div class="nav-panel">
@@ -151,24 +144,24 @@
     <div class="exercise-grid" id="exercise-grid"></div>
   </div>
 
-  <!-- floating current program button -->
+  <!-- Float bar — two buttons: view current + save -->
   <div class="float-bar">
-    <button class="btn btn-primary btn-full current-program-btn" id="btn-view-current-ex">
-      <span>📌 View current program</span>
+    <button class="btn btn-primary current-program-btn" id="btn-view-current-ex">
+      <span>📌 View</span>
       <span class="badge" id="badge-ex">0</span>
+    </button>
+    <button class="save-program-btn" id="btn-save-program">
+      💾 Save program
     </button>
   </div>
 
-  <!-- Exercise action popup
-       FIX: Added "Remove from current program" button that shows
-       conditionally when the exercise is already in the session.
-       "Add to current program" hides when remove is shown. -->
+  <!-- Exercise action popup -->
   <div id="exercise-popup" class="popup-overlay hidden" role="dialog" aria-modal="true" aria-label="Exercise options">
     <div class="popup-card" id="exercise-popup-card">
       <h3 class="popup-title" id="popup-ex-name"></h3>
       <button class="popup-btn" id="btn-add-current">Add to current program</button>
       <button class="popup-btn hidden" id="btn-remove-from-current"
-        style="color:var(--orange-red);border-color:var(--danger-border);">
+        style="color:var(--danger);border-color:var(--danger-border);">
         Remove from current program
       </button>
       <button class="popup-btn" id="btn-add-previous">Add to previous program</button>
@@ -256,8 +249,6 @@
 <div id="screen-admin" class="screen app-screen hidden">
   <div class="screen-body no-float">
     <h2 class="detail-program-name">Admin</h2>
-
-    <!-- Exercise library section -->
     <p class="screen-hint" style="margin-bottom:10px;">Exercise library</p>
     <button class="btn btn-primary btn-full" id="btn-open-add-exercise-admin" style="margin-bottom:18px;">
       ＋ Add new exercise
@@ -267,10 +258,7 @@
       <div class="empty-icon">🏋️</div>
       <p>No custom exercises added yet.</p>
     </div>
-
     <hr style="border:none;border-top:1px solid var(--border);margin-bottom:24px;">
-
-    <!-- Clinician accounts section -->
     <p class="screen-hint" style="margin-bottom:10px;">Clinician accounts</p>
     <button class="btn btn-primary btn-full" id="btn-open-invite-user" style="margin-bottom:18px;">
       ＋ Add new user
@@ -297,8 +285,6 @@
       <button class="btn btn-danger" id="btn-delete-program">🗑 Delete program</button>
     </div>
   </div>
-
-  <!-- Delete confirmation -->
   <div id="delete-modal" class="modal-overlay hidden" role="dialog">
     <div class="modal-card">
       <p>Are you sure you want to delete <strong id="delete-program-name"></strong>?</p>
@@ -308,8 +294,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Resend modal -->
   <div id="resend-modal" class="modal-overlay hidden" role="dialog">
     <div class="modal-card">
       <h3 class="modal-title">Resend access code</h3>
@@ -321,6 +305,29 @@
         <button class="btn btn-primary" id="btn-confirm-resend">Resend code</button>
         <button class="btn btn-secondary" id="btn-cancel-resend">Cancel</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     SAVE PROGRAM MODAL (top-level)
+     Prompts for a name then saves without sending to patient
+     ════════════════════════════════════════════════════ -->
+<div id="save-program-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Save program">
+  <div class="modal-card">
+    <h3 class="modal-title">💾 Save program</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.5;">
+      Name this program and save it to My Programs. You can send it to a patient later.
+    </p>
+    <div id="save-program-msg" class="alert hidden"></div>
+    <div class="form-group">
+      <label class="form-label" for="save-program-name">Program name</label>
+      <input class="form-input" type="text" id="save-program-name"
+        placeholder="Do not use patient identifying information">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="btn-confirm-save-program">Save</button>
+      <button class="btn btn-secondary" id="btn-cancel-save-program">Cancel</button>
     </div>
   </div>
 </div>
